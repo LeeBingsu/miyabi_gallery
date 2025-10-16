@@ -807,6 +807,170 @@
             }
         }
 
+    
+        /* Selection Mode Styles */
+        .selection-mode .gallery-item {
+            cursor: pointer;
+        }
+
+        .gallery-item-checkbox {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 24px;
+            height: 24px;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.2s;
+            accent-color: var(--primary-color);
+        }
+
+        .selection-mode .gallery-item-checkbox {
+            opacity: 1;
+        }
+
+        .gallery-item.selected::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 122, 255, 0.3);
+            border: 3px solid var(--primary-color);
+            border-radius: var(--radius-medium);
+            pointer-events: none;
+        }
+
+        .bulk-action-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-background);
+            padding: 16px 24px;
+            border-radius: var(--radius-large);
+            box-shadow: var(--shadow-hover);
+            display: none;
+            gap: 12px;
+            align-items: center;
+            z-index: 999;
+            flex-wrap: wrap;
+        }
+
+        .bulk-action-bar.active {
+            display: flex;
+        }
+
+        .bulk-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-medium);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .bulk-btn:active {
+            transform: scale(0.96);
+        }
+
+        .bulk-btn-download {
+            background: var(--success);
+            color: white;
+        }
+
+        .bulk-btn-delete {
+            background: var(--destructive);
+            color: white;
+        }
+
+        .bulk-btn-cancel {
+            background: var(--background);
+            color: var(--text-primary);
+        }
+
+        /* Password Modal for ZIP */
+        .password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .password-modal.active {
+            display: flex;
+        }
+
+        .password-modal-content {
+            background: var(--card-background);
+            padding: 30px;
+            border-radius: var(--radius-large);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .password-modal h3 {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .password-modal input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-medium);
+            font-size: 15px;
+            background: var(--background);
+            color: var(--text-primary);
+        }
+
+        .password-modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .password-modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius-medium);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .password-modal-buttons .btn-secondary {
+            background: var(--background);
+            color: var(--text-primary);
+        }
+
+        .password-modal-buttons .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .bulk-action-bar {
+                bottom: 10px;
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+
+            .bulk-btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+        }
+
     </style>
     <!-- zip.js Library with Password Support -->
     <script src="https://unpkg.com/@zip.js/zip.js@2.7.72/dist/zip-full.min.js"></script>
@@ -899,6 +1063,27 @@
         <div class="storage-text">
             <strong id="storageUsed">0 MB</strong> / 10 GB
         </div>
+
+    <!-- Bulk Action Bar -->
+    <div class="bulk-action-bar" id="bulkActionBar">
+        <span id="selectedCount">0 selected</span>
+        <button class="bulk-btn bulk-btn-download" onclick="downloadSelectedAsZip()">📦 Download ZIP</button>
+        <button class="bulk-btn bulk-btn-delete" onclick="deleteSelected()">🗑️ Delete</button>
+        <button class="bulk-btn bulk-btn-cancel" onclick="exitSelectionMode()">Cancel</button>
+    </div>
+
+    <!-- Password Input Modal -->
+    <div class="password-modal" id="passwordZipModal">
+        <div class="password-modal-content">
+            <h3>🔒 Protect ZIP File</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Enter a password to protect the ZIP file (optional)</p>
+            <input type="password" id="zipPassword" placeholder="Enter password (leave empty for no password)">
+            <div class="password-modal-buttons">
+                <button class="btn-secondary" onclick="cancelZipPassword()">Cancel</button>
+                <button class="btn-primary" onclick="createZipWithPassword()">Create ZIP</button>
+            </div>
+        </div>
+    </div>
         <div class="storage-bar">
             <div class="storage-bar-fill" id="storageBarFill" style="width: 0%"></div>
         </div>
@@ -1041,7 +1226,6 @@
                 
                 showToast(`✓ Uploaded ${files.length} photo(s)`, 'success');
                 loadGallery(currentFolder);
-                loadStorageStats();
                 this.value = '';
             } catch (error) {
                 showToast('Upload failed', 'error');
@@ -1060,7 +1244,6 @@
                 
                 showToast('✓ Photo deleted', 'success');
                 loadGallery(currentFolder);
-                loadStorageStats();
             } catch (error) {
                 showToast('Failed to delete', 'error');
             }
@@ -1078,6 +1261,198 @@
                 });
                 
                 showToast('✓ Folder created', 'success');
+        
+        
+        let selectedImages = [];
+        let isSelectionMode = false;
+        let pendingZipImages = [];
+
+        function toggleSelectionMode() {
+            isSelectionMode = !isSelectionMode;
+            const gallery = document.getElementById('gallery');
+            const selectBtn = document.getElementById('selectBtn');
+
+            if (isSelectionMode) {
+                gallery.classList.add('selection-mode');
+                selectBtn.innerHTML = '<span>✖️</span> Cancel';
+            } else {
+                gallery.classList.remove('selection-mode');
+                selectBtn.innerHTML = '<span>☑️</span> Select';
+                selectedImages = [];
+                document.querySelectorAll('.gallery-item').forEach(item => {
+                    item.classList.remove('selected');
+                    const checkbox = item.querySelector('.gallery-item-checkbox');
+                    if (checkbox) checkbox.checked = false;
+                });
+                updateBulkActionBar();
+            }
+        }
+
+        function toggleImageSelection(key) {
+            const item = document.querySelector(`.gallery-item[data-key="${key}"]`);
+            if (!item) return;
+
+            const checkbox = item.querySelector('.gallery-item-checkbox');
+
+            if (checkbox.checked) {
+                selectedImages.push(key);
+                item.classList.add('selected');
+            } else {
+                selectedImages = selectedImages.filter(k => k !== key);
+                item.classList.remove('selected');
+            }
+
+            updateBulkActionBar();
+        }
+
+        function handleImageClick(key, event) {
+            if (isSelectionMode) {
+                event.preventDefault();
+                const checkbox = event.target.parentElement.querySelector('.gallery-item-checkbox');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    toggleImageSelection(key);
+                }
+            } else {
+                openLightbox(`${WORKER_URL}/api/image/${key}`);
+            }
+        }
+
+        function updateBulkActionBar() {
+            const bar = document.getElementById('bulkActionBar');
+            const count = document.getElementById('selectedCount');
+
+            if (selectedImages.length > 0) {
+                bar.classList.add('active');
+                count.textContent = `${selectedImages.length} selected`;
+            } else {
+                bar.classList.remove('active');
+            }
+        }
+
+        function exitSelectionMode() {
+            if (isSelectionMode) {
+                toggleSelectionMode();
+            }
+        }
+
+        function downloadSelectedAsZip() {
+            if (selectedImages.length === 0) return;
+
+            pendingZipImages = [...selectedImages];
+            document.getElementById('passwordZipModal').classList.add('active');
+            document.getElementById('zipPassword').focus();
+        }
+
+        function cancelZipPassword() {
+            document.getElementById('passwordZipModal').classList.remove('active');
+            document.getElementById('zipPassword').value = '';
+            pendingZipImages = [];
+        }
+
+        async function createZipWithPassword() {
+            const password = document.getElementById('zipPassword').value.trim();
+
+            document.getElementById('passwordZipModal').classList.remove('active');
+            document.getElementById('zipPassword').value = '';
+
+            if (pendingZipImages.length === 0) return;
+
+            showToast(`Creating ZIP with ${pendingZipImages.length} images...`, 'success');
+
+            try {
+                const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"), {
+                    password: password || undefined,
+                    encryptionStrength: password ? 3 : undefined,
+                });
+
+                for (let i = 0; i < pendingZipImages.length; i++) {
+                    const key = pendingZipImages[i];
+                    const url = `${WORKER_URL}/api/image/${encodeURIComponent(key)}`;
+                    const filename = key.split('/').pop();
+
+                    try {
+                        const response = await fetch(url);
+                        const blob = await response.blob();
+
+                        await zipWriter.add(filename, new zip.BlobReader(blob), {
+                            level: 0
+                        });
+
+                        if ((i + 1) % 5 === 0 || i === pendingZipImages.length - 1) {
+                            showToast(`Processing ${i + 1}/${pendingZipImages.length}...`, 'success');
+                        }
+                    } catch (error) {
+                        console.error(`Failed to add ${filename}:`, error);
+                    }
+                }
+
+                const zipBlob = await zipWriter.close();
+
+                const zipFilename = `${currentFolder || 'gallery'}_${new Date().getTime()}.zip`;
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(zipBlob);
+                link.download = zipFilename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+
+                const protectedMsg = password ? '🔒 password-protected' : '';
+                showToast(`✓ Downloaded ${pendingZipImages.length} images as ${protectedMsg} ZIP`, 'success');
+
+                pendingZipImages = [];
+                exitSelectionMode();
+            } catch (error) {
+                console.error('ZIP creation failed:', error);
+                showToast('Failed to create ZIP file', 'error');
+            }
+        }
+
+        async function downloadFolderAsZip() {
+            if (!currentFolder) {
+                showToast('Please select a folder first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${WORKER_URL}/api/list/${encodeURIComponent(currentFolder)}`);
+                const images = await response.json();
+
+                if (images.length === 0) {
+                    showToast('Folder is empty', 'error');
+                    return;
+                }
+
+                pendingZipImages = images.map(img => img.key);
+                document.getElementById('passwordZipModal').classList.add('active');
+                document.getElementById('zipPassword').focus();
+            } catch (error) {
+                showToast('Failed to load folder', 'error');
+            }
+        }
+
+        async function deleteSelected() {
+            if (selectedImages.length === 0) return;
+
+            if (!confirm(`Delete ${selectedImages.length} selected images?`)) return;
+
+            try {
+                for (const key of selectedImages) {
+                    await fetch(`${WORKER_URL}/api/delete-file/${encodeURIComponent(key)}`, {
+                        method: 'DELETE'
+                    });
+                }
+
+                showToast(`✓ Deleted ${selectedImages.length} images`, 'success');
+                exitSelectionMode();
+                loadGallery(currentFolder);
+                loadStorageStats();
+            } catch (error) {
+                showToast('Delete failed', 'error');
+            }
+        }
+
         
         // Load storage statistics
         async function loadStorageStats() {
@@ -1310,7 +1685,6 @@ document.getElementById('folderInput').addEventListener('change', async function
         
         showToast(`✓ Successfully uploaded ${uploadedCount} files!`, 'success');
         loadGallery(targetFolder);
-                loadStorageStats();
         this.value = '';
     } catch (error) {
         showToast('Upload failed', 'error');
