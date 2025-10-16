@@ -1024,9 +1024,12 @@
         let pendingZipImages = [];
 
         function navigateToFolder(folderName) {
-            if (currentPath[currentPath.length - 1] === folderName) {
-                return;
-            }
+            currentPath.push(folderName);
+            currentFolder = currentPath.join('/');
+            loadFolders(currentFolder);
+            loadGallery(currentFolder);
+            updateBreadcrumb();
+        }
 
             currentPath.push(folderName);
             currentFolder = currentPath.join('/');
@@ -1330,7 +1333,8 @@
                     body: JSON.stringify({ folderPath })
                 });
                 showToast('✓ Folder created', 'success');
-                loadFolders(currentFolder);
+                await loadFolders(currentFolder);
+                setTimeout(() => { loadFolders(currentFolder); }, 500);
             } catch (error) {
                 showToast('Failed to create folder', 'error');
             }
