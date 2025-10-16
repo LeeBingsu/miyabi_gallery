@@ -687,14 +687,13 @@
     </style>
 </head>
 <body>
-    <!-- Password Protection (1 Hour Session) -->
+    <!-- Password Protection (Auto-Unlock) -->
     <div id="passwordModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 9999;">
         <div style="background: var(--card-background); padding: 40px; border-radius: 20px; max-width: 400px; width: 90%; text-align: center;">
             <h2 style="margin-bottom: 20px; color: var(--text-primary);">🔒 Gallery Access</h2>
             <p style="color: var(--text-secondary); margin-bottom: 30px;">Enter password to continue</p>
-            <input type="password" id="passwordInput" placeholder="Enter password" style="width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 12px; font-size: 16px; margin-bottom: 20px; background: var(--background); color: var(--text-primary);">
-            <button onclick="checkPassword()" style="width: 100%; padding: 14px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;">Unlock Gallery</button>
-            <p id="errorMsg" style="color: var(--destructive); margin-top: 15px; display: none;">Incorrect password. Try again.</p>
+            <input type="password" id="passwordInput" placeholder="Enter password" style="width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 12px; font-size: 16px; margin-bottom: 20px; background: var(--background); color: var(--text-primary);" autofocus>
+            <p id="errorMsg" style="color: var(--destructive); margin-top: 15px; display: none;">Incorrect password</p>
         </div>
     </div>
 
@@ -713,21 +712,30 @@
         
         async function checkPassword() {
             const input = document.getElementById('passwordInput').value;
-            const hash = await hashPassword(input);
             
-            if (hash === PASSWORD_HASH) {
-                // Store authentication with expiry time
-                const expiryTime = Date.now() + AUTH_DURATION;
-                localStorage.setItem('galleryAuth', expiryTime.toString());
-                document.getElementById('passwordModal').style.display = 'none';
-            } else {
-                document.getElementById('errorMsg').style.display = 'block';
-                document.getElementById('passwordInput').value = '';
-                document.getElementById('passwordInput').focus();
+            // Only check if input length matches expected password length
+            if (input.length >= 5) {
+                const hash = await hashPassword(input);
+                
+                if (hash === PASSWORD_HASH) {
+                    // Correct password - unlock immediately
+                    const expiryTime = Date.now() + AUTH_DURATION;
+                    localStorage.setItem('galleryAuth', expiryTime.toString());
+                    document.getElementById('passwordModal').style.display = 'none';
+                } else if (input.length > 5) {
+                    // Wrong password and typed too much
+                    document.getElementById('errorMsg').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('errorMsg').style.display = 'none';
+                    }, 2000);
+                }
             }
         }
         
-        // Allow Enter key to submit
+        // Check password on every keystroke
+        document.getElementById('passwordInput').addEventListener('input', checkPassword);
+        
+        // Also allow Enter key
         document.getElementById('passwordInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 checkPassword();
