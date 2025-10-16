@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Miygal</title>
+    <title>Miyabi Gallery</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-
-    <!-- zip.js Library with Password Support -->
-    <script src="https://unpkg.com/@zip.js/zip.js@2.7.72/dist/zip-full.min.js"></script>
-
     <style>
         * {
             margin: 0;
@@ -19,7 +15,7 @@
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
-
+        
         :root {
             --primary-color: #007AFF;
             --secondary-color: #5856D6;
@@ -36,7 +32,7 @@
             --shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
             --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
-
+        
         @media (prefers-color-scheme: dark) {
             :root {
                 --background: #000000;
@@ -46,7 +42,7 @@
                 --border-color: #38383A;
             }
         }
-
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
             background: var(--background);
@@ -54,31 +50,36 @@
             padding: 0;
             min-height: 100vh;
         }
-
+        
+        /* ============================================
+           MOBILE FIRST (320px - 767px)
+           Samsung phones, iPhones
+           ============================================ */
+        
         .viewing-area {
             padding: 40px 16px 16px;
             text-align: center;
         }
-
+        
         h1 {
             font-size: 28px;
             font-weight: 700;
             letter-spacing: -0.5px;
             margin-bottom: 8px;
         }
-
+        
         .subtitle {
             font-size: 15px;
             color: var(--text-secondary);
             font-weight: 400;
         }
-
+        
         .interaction-area {
             max-width: 100%;
             margin: 0 auto;
             padding: 0 16px 40px;
         }
-
+        
         .card {
             background: var(--card-background);
             border-radius: var(--radius-large);
@@ -86,7 +87,9 @@
             margin-bottom: 16px;
             box-shadow: var(--shadow);
         }
+        
 
+        /* Breadcrumb Navigation */
         .breadcrumb {
             display: flex;
             align-items: center;
@@ -128,7 +131,7 @@
             padding-bottom: 12px;
             border-bottom: 1px solid var(--border-color);
         }
-
+        
         .folder-pill {
             padding: 10px 16px;
             background: var(--background);
@@ -141,23 +144,23 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             white-space: nowrap;
         }
-
+        
         .folder-pill:active {
             transform: scale(0.95);
         }
-
+        
         .folder-pill.active {
             background: var(--primary-color);
             color: white;
         }
-
+        
         .action-bar {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
             margin-bottom: 16px;
         }
-
+        
         .btn {
             padding: 12px 16px;
             border: none;
@@ -171,30 +174,30 @@
             justify-content: center;
             gap: 6px;
         }
-
+        
         .btn:active {
             transform: scale(0.96);
         }
-
+        
         .btn-primary {
             background: var(--primary-color);
             color: white;
         }
-
+        
         .btn-secondary {
             background: var(--background);
             color: var(--text-primary);
         }
-
+        
         .btn-destructive {
             background: var(--destructive);
             color: white;
         }
-
+        
         input[type="file"] {
             display: none;
         }
-
+        
         .file-label {
             padding: 12px 16px;
             background: var(--success);
@@ -209,17 +212,18 @@
             gap: 6px;
             transition: all 0.2s ease;
         }
-
+        
         .file-label:active {
             transform: scale(0.96);
         }
-
+        
+        /* Mobile Gallery: 2 columns */
         .gallery {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 8px;
         }
-
+        
         .gallery-item {
             position: relative;
             aspect-ratio: 1;
@@ -228,17 +232,17 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
+        
         .gallery-item:active {
             transform: scale(0.98);
         }
-
+        
         .gallery-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-
+        
         .delete-btn {
             position: absolute;
             top: 6px;
@@ -258,18 +262,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 5;
         }
-
+        
         .gallery-item:hover .delete-btn,
         .gallery-item:active .delete-btn {
             opacity: 1;
         }
-
+        
         .delete-btn:active {
             transform: scale(0.9);
         }
-
+        
         .lightbox {
             display: none;
             position: fixed;
@@ -282,25 +285,25 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
         }
-
+        
         .lightbox.active {
             display: flex;
             justify-content: center;
             align-items: center;
             animation: fadeIn 0.2s ease;
         }
-
+        
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
-
+        
         .lightbox img {
             max-width: 90%;
             max-height: 90%;
             border-radius: var(--radius-large);
         }
-
+        
         .close {
             position: absolute;
             top: 20px;
@@ -320,15 +323,15 @@
             justify-content: center;
             transition: all 0.2s ease;
         }
-
+        
         .close:hover {
             background: rgba(255, 255, 255, 0.3);
         }
-
+        
         .close:active {
             transform: scale(0.9);
         }
-
+        
         .toast {
             position: fixed;
             bottom: 80px;
@@ -345,32 +348,39 @@
             z-index: 2000;
             max-width: 90%;
         }
-
+        
         .toast.show {
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
-
+        
         .toast.success {
             color: var(--success);
         }
-
+        
         .toast.error {
             color: var(--destructive);
         }
-
+        
         .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: var(--text-secondary);
         }
-
+        
         .empty-state-icon {
             font-size: 64px;
             margin-bottom: 16px;
             opacity: 0.5;
         }
+        
+        /* ============================================
+           TABLET PORTRAIT (768px - 1023px)
+           iPad, Samsung Galaxy Tab
+           ============================================ */
+        
 
+        /* Floating PixAI Button */
         .pixai-shortcut {
             position: fixed;
             top: 20px;
@@ -404,130 +414,278 @@
             height: 28px;
         }
 
-        /* STORAGE INFO - SMALLER AND HIGHER */
-        .storage-info {
-            position: fixed;
-            top: 10px;
-            right: 90px;
-            background: var(--card-background);
-            padding: 6px 12px;
-            border-radius: var(--radius-small);
-            box-shadow: var(--shadow);
-            font-size: 11px;
-            z-index: 998;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .storage-bar {
-            width: 80px;
-            height: 4px;
-            background: var(--background);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .storage-bar-fill {
-            height: 100%;
-            background: var(--success);
-            transition: width 0.3s ease;
-        }
-
-        .storage-text {
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 10px;
-        }
-
-        .storage-text strong {
-            color: var(--text-primary);
-            font-size: 11px;
-        }
-
-        /* Selection Mode Styles */
-        .selection-mode .gallery-item {
-            cursor: pointer;
-        }
-
-        .gallery-item-checkbox {
+        .pixai-shortcut::before {
+            content: 'Generate AI Art';
             position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 24px;
-            height: 24px;
-            z-index: 10;
+            right: 70px;
+            background: var(--card-background);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
             opacity: 0;
+            pointer-events: none;
             transition: opacity 0.2s;
-            accent-color: var(--primary-color);
+            box-shadow: var(--shadow);
         }
 
-        .selection-mode .gallery-item-checkbox {
+        .pixai-shortcut:hover::before {
             opacity: 1;
         }
 
-        .gallery-item.selected::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 122, 255, 0.3);
-            border: 3px solid var(--primary-color);
-            border-radius: var(--radius-medium);
-            pointer-events: none;
+        @media (max-width: 768px) {
+            .pixai-shortcut {
+                width: 48px;
+                height: 48px;
+                top: 16px;
+                right: 16px;
+            }
+
+            .pixai-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+            }
+
+            .pixai-shortcut::before {
+                display: none;
+            }
         }
 
-        .bulk-action-bar {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--card-background);
-            padding: 16px 24px;
-            border-radius: var(--radius-large);
-            box-shadow: var(--shadow-hover);
-            display: none;
-            gap: 12px;
-            align-items: center;
-            z-index: 999;
-            flex-wrap: wrap;
+        @media (min-width: 768px) {
+            .viewing-area {
+                padding: 50px 24px 20px;
+            }
+            
+            h1 {
+                font-size: 32px;
+            }
+            
+            .subtitle {
+                font-size: 17px;
+            }
+            
+            .interaction-area {
+                max-width: 100%;
+                padding: 0 24px 40px;
+            }
+            
+            .card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .folder-container {
+                margin-bottom: 16px;
+                padding-bottom: 16px;
+            }
+            
+            .folder-pill {
+                padding: 10px 20px;
+                font-size: 15px;
+            }
+            
+            /* Tablet: 3-4 buttons per row */
+            .action-bar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            
+            .btn, .file-label {
+                padding: 12px 20px;
+                font-size: 15px;
+                flex: 0 1 auto;
+            }
+            
+            /* Tablet Gallery: 4 columns */
+            .gallery {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+            
+            .delete-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 18px;
+            }
         }
-
-        .bulk-action-bar.active {
-            display: flex;
+        
+        /* ============================================
+           TABLET LANDSCAPE & SMALL DESKTOP (1024px - 1439px)
+           iPad landscape, Windows laptops
+           ============================================ */
+        
+        @media (min-width: 1024px) {
+            .viewing-area {
+                padding: 60px 32px 24px;
+            }
+            
+            h1 {
+                font-size: 36px;
+            }
+            
+            .interaction-area {
+                max-width: 1400px;
+                padding: 0 32px 60px;
+            }
+            
+            .card {
+                padding: 24px;
+            }
+            
+            /* Desktop: all buttons in one row */
+            .action-bar {
+                gap: 12px;
+            }
+            
+            .btn, .file-label {
+                padding: 12px 24px;
+                font-size: 15px;
+            }
+            
+            /* Small Desktop Gallery: 5 columns */
+            .gallery {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 16px;
+            }
+            
+            .gallery-item:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-hover);
+            }
+            
+            /* Show delete button on hover for desktop */
+            .gallery-item .delete-btn {
+                opacity: 0;
+            }
+            
+            .gallery-item:hover .delete-btn {
+                opacity: 1;
+            }
         }
-
-        .bulk-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: var(--radius-medium);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+        
+        /* ============================================
+           LARGE DESKTOP (1440px - 1919px)
+           Windows desktops, MacBook Pro
+           ============================================ */
+        
+        @media (min-width: 1440px) {
+            h1 {
+                font-size: 40px;
+            }
+            
+            .viewing-area {
+                padding: 80px 40px 32px;
+            }
+            
+            .interaction-area {
+                max-width: 1600px;
+                padding: 0 40px 80px;
+            }
+            
+            .card {
+                padding: 28px;
+            }
+            
+            /* Large Desktop Gallery: 6 columns */
+            .gallery {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 20px;
+            }
         }
-
-        .bulk-btn:active {
-            transform: scale(0.96);
+        
+        /* ============================================
+           ULTRA-WIDE (1920px+)
+           4K displays, ultra-wide monitors
+           ============================================ */
+        
+        @media (min-width: 1920px) {
+            h1 {
+                font-size: 44px;
+            }
+            
+            .subtitle {
+                font-size: 19px;
+            }
+            
+            .viewing-area {
+                padding: 100px 60px 40px;
+            }
+            
+            .interaction-area {
+                max-width: 2000px;
+                padding: 0 60px 100px;
+            }
+            
+            .card {
+                padding: 32px;
+            }
+            
+            .folder-pill {
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+            
+            .btn, .file-label {
+                padding: 14px 28px;
+                font-size: 16px;
+            }
+            
+            /* Ultra-wide Gallery: 8 columns */
+            .gallery {
+                grid-template-columns: repeat(8, 1fr);
+                gap: 24px;
+            }
+            
+            .delete-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 20px;
+            }
         }
-
-        .bulk-btn-download {
-            background: var(--success);
-            color: white;
+        
+        /* ============================================
+           ORIENTATION SPECIFIC
+           ============================================ */
+        
+        /* Mobile Landscape */
+        @media (max-width: 767px) and (orientation: landscape) {
+            .gallery {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .viewing-area {
+                padding: 24px 16px 12px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
         }
-
-        .bulk-btn-delete {
-            background: var(--destructive);
-            color: white;
+        
+        /* Tablet Landscape optimizations */
+        @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
+            .gallery {
+                grid-template-columns: repeat(5, 1fr);
+            }
         }
-
-        .bulk-btn-cancel {
-            background: var(--background);
-            color: var(--text-primary);
+        
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .delete-btn {
+                opacity: 1;
+            }
+            
+            .btn, .file-label, .folder-pill {
+                min-height: 44px; /* iOS/Android touch target */
+            }
         }
-
+    
+        /* Password Input Modal */
         .password-modal {
             position: fixed;
             top: 0;
@@ -538,7 +696,7 @@
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 10000;
+            z-index: 9999;
         }
 
         .password-modal.active {
@@ -594,311 +752,49 @@
             color: white;
         }
 
-        @media (max-width: 640px) {
-            .pixai-shortcut {
-                width: 48px;
-                height: 48px;
-                top: 16px;
-                right: 16px;
-            }
-
-            .pixai-icon {
-                width: 24px;
-                height: 24px;
-            }
-
-            .storage-info {
-                top: 70px;
-                right: 16px;
-                font-size: 10px;
-            }
-
-            .storage-bar {
-                width: 60px;
-            }
-
-            .bulk-action-bar {
-                bottom: 10px;
-                padding: 12px 16px;
-                font-size: 13px;
-            }
-
-            .bulk-btn {
-                padding: 8px 16px;
-                font-size: 13px;
-            }
-        }
-
-        @media (min-width: 768px) {
-            .viewing-area {
-                padding: 50px 24px 20px;
-            }
-
-            h1 {
-                font-size: 32px;
-            }
-
-            .subtitle {
-                font-size: 17px;
-            }
-
-            .interaction-area {
-                max-width: 1400px;
-                padding: 0 24px 40px;
-            }
-
-            .card {
-                padding: 20px;
-                margin-bottom: 20px;
-            }
-
-            .action-bar {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 12px;
-            }
-
-            .btn, .file-label {
-                padding: 12px 20px;
-                font-size: 15px;
-                flex: 0 1 auto;
-            }
-
-            .gallery {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 12px;
-            }
-
-            .gallery-item:hover {
-                transform: translateY(-4px);
-                box-shadow: var(--shadow-hover);
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .gallery {
-                grid-template-columns: repeat(5, 1fr);
-                gap: 16px;
-            }
-        }
-
-        @media (min-width: 1440px) {
-            .gallery {
-                grid-template-columns: repeat(6, 1fr);
-                gap: 20px;
-            }
-        }
-
-        @media (min-width: 1920px) {
-            .gallery {
-                grid-template-columns: repeat(8, 1fr);
-                gap: 24px;
-            }
-        }
-
-        @media (hover: none) and (pointer: coarse) {
-            .delete-btn {
-                opacity: 1;
-            }
-
-            .btn, .file-label, .folder-pill {
-                min-height: 44px;
-            }
-        }
-    
-        /* Progress Overlay */
-        .progress-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(15px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-        }
-
-        .progress-overlay.active {
-            display: flex;
-        }
-
-        .progress-container {
-            background: var(--card-background);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 450px;
-            width: 90%;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-        }
-
-        .progress-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-
-        .progress-icon {
-            font-size: 28px;
-        }
-
-        .progress-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .progress-subtitle {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 20px;
-            margin-left: 40px;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 6px;
-            background: var(--background);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #007AFF, #5856D6);
-            border-radius: 3px;
-            transition: width 0.3s ease;
-            position: relative;
-        }
-
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: shine 1.5s infinite;
-        }
-
-        @keyframes shine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .progress-info {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .progress-stat {
-            text-align: center;
-        }
-
-        .progress-stat-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
-        }
-
-        .progress-stat-value {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .progress-cancel {
-            width: 100%;
-            padding: 12px;
-            background: var(--destructive);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .progress-cancel:active {
-            transform: scale(0.98);
-        }
-
     </style>
+    <!-- zip.js Library with Password Support -->
+    <script src="https://unpkg.com/@zip.js/zip.js@2.7.72/dist/zip-full.min.js"></script>
+    
 </head>
 <body>
-
-    <!-- Progress Overlay -->
-    <div class="progress-overlay" id="progressOverlay">
-        <div class="progress-container">
-            <div class="progress-header">
-                <span class="progress-icon" id="progressIcon">📤</span>
-                <span class="progress-title" id="progressTitle">Uploading...</span>
-            </div>
-            <div class="progress-subtitle" id="progressSubtitle">Please wait</div>
-
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
-            </div>
-
-            <div class="progress-info">
-                <div class="progress-stat">
-                    <div class="progress-stat-label">Progress</div>
-                    <div class="progress-stat-value" id="progressPercent">0%</div>
-                </div>
-                <div class="progress-stat">
-                    <div class="progress-stat-label">Files</div>
-                    <div class="progress-stat-value" id="progressCount">0/0</div>
-                </div>
-                <div class="progress-stat">
-                    <div class="progress-stat-label">Speed</div>
-                    <div class="progress-stat-value" id="progressSpeed">--</div>
-                </div>
-            </div>
-
-            <button class="progress-cancel" onclick="cancelProgress()">Cancel</button>
-        </div>
-    </div>
-    <!-- Password Protection -->
+    <!-- Password Protection (Auto-Unlock) -->
     <div id="passwordModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 9999;">
         <div style="background: var(--card-background); padding: 40px; border-radius: 20px; max-width: 400px; width: 90%; text-align: center;">
             <h2 style="margin-bottom: 20px; color: var(--text-primary);">🔒 Gallery Access</h2>
             <p style="color: var(--text-secondary); margin-bottom: 30px;">Enter password to continue</p>
-            <input type="password" id="passwordInput" placeholder="Enter dot password" style="width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 12px; font-size: 16px; margin-bottom: 20px; background: var(--background); color: var(--text-primary);" autofocus>
+            <input type="password" id="passwordInput" placeholder="Enter password" style="width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 12px; font-size: 16px; margin-bottom: 20px; background: var(--background); color: var(--text-primary);" autofocus>
             <p id="errorMsg" style="color: var(--destructive); margin-top: 15px; display: none;">Incorrect password</p>
         </div>
     </div>
 
     <script>
-        const PASSWORD_HASH = '3fb97d67d0041d9e3f03b9b6d89d860b1e07884f674336ebad64a8fd4288a4865655f0e68cc2acc978ed94d71d87672452d2850ddc90bccc0edaecb3bf135126';
-        const AUTH_DURATION = 60 * 60 * 1000;
-
+        const PASSWORD_HASH = 'd16f88f0b0533679c362fc029803f537f331ccd16da8bf7269c177b0bef149ae';
+        const AUTH_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+        
         async function hashPassword(password) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password);
-            const hash = await crypto.subtle.digest('SHA-512', data);
+            const hash = await crypto.subtle.digest('SHA-256', data);
             return Array.from(new Uint8Array(hash))
                 .map(b => b.toString(16).padStart(2, '0'))
                 .join('');
         }
-
+        
         async function checkPassword() {
             const input = document.getElementById('passwordInput').value;
-
+            
+            // Only check if input length matches expected password length
             if (input.length >= 5) {
                 const hash = await hashPassword(input);
-
+                
                 if (hash === PASSWORD_HASH) {
+                    // Correct password - unlock immediately
                     const expiryTime = Date.now() + AUTH_DURATION;
                     localStorage.setItem('galleryAuth', expiryTime.toString());
                     document.getElementById('passwordModal').style.display = 'none';
                 } else if (input.length > 5) {
+                    // Wrong password and typed too much
                     document.getElementById('errorMsg').style.display = 'block';
                     setTimeout(() => {
                         document.getElementById('errorMsg').style.display = 'none';
@@ -906,82 +802,64 @@
                 }
             }
         }
-
+        
+        // Check password on every keystroke
         document.getElementById('passwordInput').addEventListener('input', checkPassword);
+        
+        // Also allow Enter key
         document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') checkPassword();
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
         });
-
+        
+        // Check if already authenticated and not expired
         function checkAuth() {
             const authExpiry = localStorage.getItem('galleryAuth');
             if (authExpiry) {
                 const expiryTime = parseInt(authExpiry);
                 const currentTime = Date.now();
-
+                
                 if (currentTime < expiryTime) {
+                    // Still valid, hide password modal
                     document.getElementById('passwordModal').style.display = 'none';
                 } else {
+                    // Expired, remove old auth
                     localStorage.removeItem('galleryAuth');
                 }
             }
         }
-
+        
+        // Check authentication on page load
         checkAuth();
     </script>
-
+    
+    <!-- PixAI Shortcut Button -->
     <a href="https://pixai.art/generator/image" target="_blank" class="pixai-shortcut" title="Generate AI Art">
         <img src="pixai-logo.png" alt="PixAI" class="pixai-icon">
     </a>
 
-    <div class="storage-info" id="storageInfo">
-        <div class="storage-text">
-            <strong id="storageUsed">0 MB</strong> / 10 GB
-        </div>
-        <div class="storage-bar">
-            <div class="storage-bar-fill" id="storageBarFill" style="width: 0%"></div>
-        </div>
-        <span class="storage-text" id="storagePercent">0%</span>
-    </div>
-
-    <div class="bulk-action-bar" id="bulkActionBar">
-        <span id="selectedCount">0 selected</span>
-        <button class="bulk-btn bulk-btn-download" onclick="downloadSelectedAsZip()">📦 Download ZIP</button>
-        <button class="bulk-btn bulk-btn-delete" onclick="deleteSelected()">🗑️ Delete</button>
-        <button class="bulk-btn bulk-btn-cancel" onclick="exitSelectionMode()">Cancel</button>
-    </div>
-
-    <div class="password-modal" id="passwordZipModal">
-        <div class="password-modal-content">
-            <h3>🔒 Protect ZIP File</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 20px;">Enter a password to protect the ZIP file (optional)</p>
-            <input type="password" id="zipPassword" placeholder="Enter password (leave empty for no password)">
-            <div class="password-modal-buttons">
-                <button class="btn-secondary" onclick="cancelZipPassword()">Cancel</button>
-                <button class="btn-primary" onclick="createZipWithPassword()">Create ZIP</button>
-            </div>
-        </div>
-    </div>
-
     <div class="viewing-area">
         <h1>Miygal</h1>
     </div>
-
+    
     <div class="interaction-area">
         <div class="card">
             <div class="breadcrumb" id="breadcrumb"></div>
             <div class="folder-container" id="folderList"></div>
-
+            
             <div class="action-bar">
-                <label class="file-label" for="fileInput">
-                    <span>📷</span> Upload Photos
-                </label>
-                <input type="file" id="fileInput" multiple accept="image/*">
+            <label class="file-label" for="fileInput">
+        <span>📷</span> Upload Photos
+    </label>
+    <input type="file" id="fileInput" multiple accept="image/*">
+    
+    <label class="file-label" for="folderInput" style="background: var(--secondary-color);">
+        <span>📂</span> Upload Folder
+    </label>
+    <input type="file" id="folderInput" webkitdirectory directory multiple>
 
-                <label class="file-label" for="folderInput" style="background: var(--secondary-color);">
-                    <span>📂</span> Upload Folder
-                </label>
-                <input type="file" id="folderInput" webkitdirectory directory multiple>
-
+                
                 <button class="btn btn-primary" onclick="showCreateFolder()">
                     <span>📁</span> New Folder
                 </button>
@@ -991,136 +869,28 @@
                 <button class="btn btn-destructive" onclick="showDeleteFolder()">
                     <span>🗑️</span> Delete Folder
                 </button>
-                <button class="btn btn-secondary" onclick="downloadFolderAsZip()">
-                    <span>📦</span> Download Folder
-                </button>
-                <button class="btn btn-secondary" onclick="toggleSelectionMode()" id="selectBtn">
-                    <span>☑️</span> Select
-                </button>
             </div>
         </div>
-
+        
         <div class="gallery" id="gallery"></div>
         <div class="empty-state" id="emptyState" style="display: none;">
             <div class="empty-state-icon">📷</div>
             <p>No photos yet. Upload some to get started!</p>
         </div>
     </div>
-
+    
     <div class="lightbox" id="lightbox" onclick="closeLightbox()">
         <button class="close">×</button>
         <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
     </div>
-
+    
     <div class="toast" id="toast"></div>
 
     <script>
         const WORKER_URL = 'https://gallery-worker.b1ngsuk09.workers.dev';
-
-        let currentFolder = '';
-        let currentPath = [];
-        let selectedImages = [];
-        let isSelectionMode = false;
-        let pendingZipImages = [];
-
-        function navigateToFolder(folderName) {
-            currentPath.push(folderName);
-            currentFolder = currentPath.join('/');
-            loadFolders(currentFolder);
-            loadGallery(currentFolder);
-            updateBreadcrumb();
-        }
-
-            currentPath.push(folderName);
-            currentFolder = currentPath.join('/');
-            loadFolders(currentFolder);
-            loadGallery(currentFolder);
-        }
-
-        function navigateToPath(index) {
-            if (index === -1) {
-                currentPath = [];
-                currentFolder = '';
-                loadFolders('');
-                document.getElementById('gallery').innerHTML = '';
-                document.getElementById('emptyState').style.display = 'block';
-            } else {
-                currentPath = currentPath.slice(0, index + 1);
-                currentFolder = currentPath.join('/');
-                loadFolders(currentFolder);
-                loadGallery(currentFolder);
-            }
-        }
-
-        function updateBreadcrumb() {
-            const breadcrumb = document.getElementById('breadcrumb');
-            breadcrumb.innerHTML = '';
-
-            const root = document.createElement('span');
-            root.className = 'breadcrumb-item';
-            root.textContent = '🏠 Home';
-            root.onclick = () => navigateToPath(-1);
-            breadcrumb.appendChild(root);
-
-            currentPath.forEach((segment, index) => {
-                const separator = document.createElement('span');
-                separator.className = 'breadcrumb-separator';
-                separator.textContent = '/';
-                breadcrumb.appendChild(separator);
-
-                const item = document.createElement('span');
-                item.className = index === currentPath.length - 1 ? 'breadcrumb-item current' : 'breadcrumb-item';
-                item.textContent = segment;
-                if (index < currentPath.length - 1) {
-                    item.onclick = () => navigateToPath(index);
-                }
-                breadcrumb.appendChild(item);
-            });
-        }
-
         
-        let progressCancel = false;
-        let progressStart = 0;
-        let progressBytes = 0;
-
-        function showProgress(title, subtitle, icon) {
-            document.getElementById('progressOverlay').classList.add('active');
-            document.getElementById('progressTitle').textContent = title;
-            document.getElementById('progressSubtitle').textContent = subtitle;
-            document.getElementById('progressIcon').textContent = icon;
-            document.getElementById('progressBar').style.width = '0%';
-            document.getElementById('progressPercent').textContent = '0%';
-            document.getElementById('progressCount').textContent = '0/0';
-            document.getElementById('progressSpeed').textContent = '--';
-            progressCancel = false;
-            progressStart = Date.now();
-            progressBytes = 0;
-        }
-
-        function updateProgress(current, total, bytes = 0) {
-            const percent = Math.floor((current / total) * 100);
-            document.getElementById('progressBar').style.width = percent + '%';
-            document.getElementById('progressPercent').textContent = percent + '%';
-            document.getElementById('progressCount').textContent = `${current}/${total}`;
-
-            if (bytes > 0) {
-                progressBytes += bytes;
-                const elapsed = (Date.now() - progressStart) / 1000;
-                const speed = (progressBytes / elapsed / 1024 / 1024).toFixed(1);
-                document.getElementById('progressSpeed').textContent = speed + ' MB/s';
-            }
-        }
-
-        function hideProgress() {
-            document.getElementById('progressOverlay').classList.remove('active');
-        }
-
-        function cancelProgress() {
-            progressCancel = true;
-            hideProgress();
-            showToast('Cancelled', 'error');
-        }
-
+        let currentFolder = '';
+        let currentPath = []; // Track folder path
         
         async function loadFolders(parentPath = '') {
             try {
@@ -1143,39 +913,40 @@
                 showToast('Failed to load folders', 'error');
             }
         }
-
+        
         async function loadGallery(folder) {
             currentFolder = folder;
-
+            
+            document.querySelectorAll('.folder-pill').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent === folder) {
+                    btn.classList.add('active');
+                }
+            });
+            
             try {
-                const response = await fetch(`${WORKER_URL}/api/list/${encodeURIComponent(folder)}`);
+                const response = await fetch(`${WORKER_URL}/api/list/${folder}`);
                 const images = await response.json();
-
+                
                 const gallery = document.getElementById('gallery');
                 const emptyState = document.getElementById('emptyState');
                 gallery.innerHTML = '';
-
+                
                 if (images.length === 0) {
                     gallery.style.display = 'none';
                     emptyState.style.display = 'block';
                 } else {
                     gallery.style.display = 'grid';
                     emptyState.style.display = 'none';
-
+                    
                     images.forEach(img => {
                         const item = document.createElement('div');
                         item.className = 'gallery-item';
-                        item.dataset.key = img.key;
                         item.innerHTML = `
-                            <input type="checkbox" class="gallery-item-checkbox" onchange="toggleImageSelection('${img.key.replace(/'/g, "\'")}')">
-                            <img src="${WORKER_URL}/api/image/${encodeURIComponent(img.key)}" alt="Photo">
-                            <button class="delete-btn" onclick="deleteFile('${img.key.replace(/'/g, "\'")}', event)">×</button>
+                            <img src="${WORKER_URL}/api/image/${img.key}" alt="Photo">
+                            <button class="delete-btn" onclick="deleteFile('${img.key}', event)">×</button>
                         `;
-
-                        // Add click handler to image
-                        const imgElement = item.querySelector('img');
-                        imgElement.onclick = (e) => handleImageClick(img.key, e);
-
+                        item.querySelector('img').onclick = () => openLightbox(`${WORKER_URL}/api/image/${img.key}`);
                         gallery.appendChild(item);
                     });
                 }
@@ -1183,434 +954,264 @@
                 showToast('Failed to load images', 'error');
             }
         }
-
-        function handleImageClick(key, event) {
-            if (isSelectionMode) {
-                event.preventDefault();
-                const checkbox = event.target.parentElement.querySelector('.gallery-item-checkbox');
-                if (checkbox) {
-                    checkbox.checked = !checkbox.checked;
-                    toggleImageSelection(key);
-                }
-            } else {
-                openLightbox(`${WORKER_URL}/api/image/${encodeURIComponent(key)}`);
-            }
-        }
-
+        
         document.getElementById('fileInput').addEventListener('change', async function() {
             const files = this.files;
             if (files.length === 0) return;
-
+            
             if (!currentFolder) {
-                showToast('Please select a folder first', 'error');
+                showToast('Please select or create a folder first', 'error');
                 return;
             }
-
+            
             try {
-                showProgress('Uploading Photos', `Uploading ${files.length} photos...`, '📤');
-
-                for (let i = 0; i < files.length; i++) {
-                    if (progressCancel) break;
-                    const file = files[i];
-                    updateProgress(i + 1, files.length, file.size);
-                    
-                    await fetch(`${WORKER_URL}/api/upload/${encodeURIComponent(currentFolder)}/${Date.now()}-${encodeURIComponent(file.name)}`, {
+                for (const file of files) {
+                    await fetch(`${WORKER_URL}/api/upload/${currentFolder}/${Date.now()}-${file.name}`, {
                         method: 'PUT',
                         body: file,
                         headers: { 'Content-Type': file.type }
                     });
                 }
-
-                hideProgress();
+                
                 showToast(`✓ Uploaded ${files.length} photo(s)`, 'success');
                 loadGallery(currentFolder);
-                loadStorageStats();
                 this.value = '';
             } catch (error) {
                 showToast('Upload failed', 'error');
             }
         });
-
-        document.getElementById('folderInput').addEventListener('change', async function() {
-            const files = this.files;
-            if (files.length === 0) return;
-
-            const firstPath = files[0].webkitRelativePath;
-            const folderName = firstPath.split('/')[0];
-            const createNew = confirm(`Upload ${files.length} files from "${folderName}".\n\nOK = Create new folder\nCancel = Use current folder`);
-
-            let targetFolder;
-            if (createNew) {
-                const fullPath = currentFolder ? `${currentFolder}/${folderName}` : folderName;
-                await fetch(`${WORKER_URL}/api/create-folder`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ folderPath: fullPath })
-                });
-                targetFolder = fullPath;
-                currentPath.push(folderName);
-                currentFolder = currentPath.join('/');
-                await loadFolders(currentFolder.split('/').slice(0, -1).join('/'));
-            } else {
-                if (!currentFolder) { showToast('Select a folder first', 'error'); return; }
-                targetFolder = currentFolder;
-            }
-
-            try {
-                let count = 0;
-                for (const file of files) {
-                    const relativePath = file.webkitRelativePath.split('/').slice(1).join('/');
-                    await fetch(`${WORKER_URL}/api/upload/${encodeURIComponent(targetFolder)}/${Date.now()}-${count++}-${encodeURIComponent(relativePath)}`, {
-                        method: 'PUT',
-                        body: file,
-                        headers: { 'Content-Type': file.type }
-                    });
-                }
-                showToast(`✓ Uploaded ${count} files!`, 'success');
-                loadGallery(targetFolder);
-                loadStorageStats();
-                this.value = '';
-            } catch (error) {
-                showToast('Upload failed', 'error');
-            }
-        });
-
+        
         async function deleteFile(key, event) {
             event.stopPropagation();
-
+            
             if (!confirm('Delete this photo?')) return;
-
+            
             try {
-                await fetch(`${WORKER_URL}/api/delete-file/${encodeURIComponent(key)}`, {
+                await fetch(`${WORKER_URL}/api/delete-file/${key}`, {
                     method: 'DELETE'
                 });
-
+                
                 showToast('✓ Photo deleted', 'success');
                 loadGallery(currentFolder);
-                loadStorageStats();
             } catch (error) {
                 showToast('Failed to delete', 'error');
             }
         }
-
+        
         async function showCreateFolder() {
-            let folderName = prompt('New folder name:');
-            if (!folderName || folderName.trim() === '') {
-                showToast('Please enter a valid folder name', 'error');
-                return;
-            }
-
-            folderName = folderName.trim();
-            const folderPath = currentFolder ? `${currentFolder}/${folderName}` : folderName;
-
-            try {
-                await fetch(`${WORKER_URL}/api/create-folder`, {
+    let folderName = prompt('New folder name:');
+    if (!folderName || folderName.trim() === '') return;
+    folderName = folderName.trim();
+    const folderPath = currentFolder ? `${currentFolder}/${folderName}` : folderName;
+    try {
+        await fetch(`${WORKER_URL}/api/create-folder`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ folderPath })
+        });
+        showToast('✓ Folder created', 'success');
+        await loadFolders(currentFolder);
+        setTimeout(() => { loadFolders(currentFolder); }, 500);
+    } catch (error) {
+        console.error('Create folder error:', error);
+        showToast('Failed to create folder', 'error');
+    }
+}/api/create-folder`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ folderPath })
+                    body: JSON.stringify({ folderName })
                 });
-
+                
                 showToast('✓ Folder created', 'success');
-
-                // Reload folders with delay to allow R2 propagation
-                await loadFolders(currentFolder);
-
-                // Double-check after 500ms
-                setTimeout(async () => {
-                    await loadFolders(currentFolder);
-                }, 500);
-
-            } catch (error) {
-                console.error('Create folder error:', error);
-                showToast('Failed to create folder', 'error');
-            }
-        }` : folderName;
-
-            try {
-                await fetch(`${WORKER_URL}/api/create-folder`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ folderPath })
-                });
-                showToast('✓ Folder created', 'success');
-                await loadFolders(currentFolder);
-                setTimeout(() => { loadFolders(currentFolder); }, 500);
+                loadFolders('');
             } catch (error) {
                 showToast('Failed to create folder', 'error');
             }
         }
-
+        
         async function showRenameFolder() {
-            if (!currentFolder) { showToast('Select a folder first', 'error'); return; }
-
-            const currentName = currentPath[currentPath.length - 1];
-            const newName = prompt(`Rename "${currentName}" to:`);
+            if (!currentFolder) {
+                showToast('Please select a folder first', 'error');
+                return;
+            }
+            
+            const newName = prompt(`Rename "${currentFolder}" to:`);
             if (!newName) return;
-
-            const parentPath = currentPath.slice(0, -1).join('/');
-            const newPath = parentPath ? `${parentPath}/${newName}` : newName;
-
+            
             try {
                 await fetch(`${WORKER_URL}/api/rename-folder`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ oldPath: currentFolder, newPath })
+                    body: JSON.stringify({ oldName: currentFolder, newName })
                 });
+                
                 showToast('✓ Folder renamed', 'success');
-                currentPath[currentPath.length - 1] = newName;
-                currentFolder = currentPath.join('/');
-                loadFolders(parentPath);
-                loadGallery(currentFolder);
+                currentFolder = newName;
+                loadFolders('');
             } catch (error) {
                 showToast('Failed to rename', 'error');
             }
         }
-
+        
         async function showDeleteFolder() {
-            if (!currentFolder) { showToast('Select a folder first', 'error'); return; }
-            if (!confirm(`Delete "${currentPath[currentPath.length - 1]}" and all contents?`)) return;
-
+            if (!currentFolder) {
+                showToast('Please select a folder first', 'error');
+                return;
+            }
+            
+            if (!confirm(`Delete folder "${currentFolder}" and all its photos?`)) return;
+            
             try {
                 await fetch(`${WORKER_URL}/api/delete-folder`, {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ folderPath: currentFolder })
+                    body: JSON.stringify({ folderName: currentFolder })
                 });
+                
                 showToast('✓ Folder deleted', 'success');
-                currentPath.pop();
-                currentFolder = currentPath.join('/');
-                loadFolders(currentFolder);
-                loadStorageStats();
+                currentFolder = '';
+                loadFolders('');
             } catch (error) {
                 showToast('Failed to delete folder', 'error');
             }
         }
-
+        
         function openLightbox(imgSrc) {
             document.getElementById('lightbox').classList.add('active');
             document.getElementById('lightbox-img').src = imgSrc;
         }
-
+        
         function closeLightbox() {
             document.getElementById('lightbox').classList.remove('active');
         }
-
+        
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.className = `toast ${type} show`;
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
+        function navigateToFolder(folderName) {
+    currentPath.push(folderName);
+    currentFolder = currentPath.join('/');
+    loadFolders(currentFolder);
+    loadGallery(currentFolder);
+    updateBreadcrumb();
+}
 
-        function toggleSelectionMode() {
-            isSelectionMode = !isSelectionMode;
-            const gallery = document.getElementById('gallery');
-            const selectBtn = document.getElementById('selectBtn');
-
-            if (isSelectionMode) {
-                gallery.classList.add('selection-mode');
-                selectBtn.innerHTML = '<span>✖️</span> Cancel';
-            } else {
-                gallery.classList.remove('selection-mode');
-                selectBtn.innerHTML = '<span>☑️</span> Select';
-                selectedImages = [];
-                document.querySelectorAll('.gallery-item').forEach(item => {
-                    item.classList.remove('selected');
-                    const checkbox = item.querySelector('.gallery-item-checkbox');
-                    if (checkbox) checkbox.checked = false;
-                });
-                updateBulkActionBar();
-            }
-        }
-
-        function toggleImageSelection(key) {
-            const item = document.querySelector(`.gallery-item[data-key="${key}"]`);
-            if (!item) return;
-
-            const checkbox = item.querySelector('.gallery-item-checkbox');
-
-            if (checkbox.checked) {
-                selectedImages.push(key);
-                item.classList.add('selected');
-            } else {
-                selectedImages = selectedImages.filter(k => k !== key);
-                item.classList.remove('selected');
-            }
-
-            updateBulkActionBar();
-        }
-
-        function updateBulkActionBar() {
-            const bar = document.getElementById('bulkActionBar');
-            const count = document.getElementById('selectedCount');
-
-            if (selectedImages.length > 0) {
-                bar.classList.add('active');
-                count.textContent = `${selectedImages.length} selected`;
-            } else {
-                bar.classList.remove('active');
-            }
-        }
-
-        function exitSelectionMode() {
-            if (isSelectionMode) {
-                toggleSelectionMode();
-            }
-        }
-
-        function downloadSelectedAsZip() {
-            if (selectedImages.length === 0) return;
-
-            pendingZipImages = [...selectedImages];
-            document.getElementById('passwordZipModal').classList.add('active');
-            document.getElementById('zipPassword').focus();
-        }
-
-        function cancelZipPassword() {
-            document.getElementById('passwordZipModal').classList.remove('active');
-            document.getElementById('zipPassword').value = '';
-            pendingZipImages = [];
-        }
-
-        async function createZipWithPassword() {
-            const password = document.getElementById('zipPassword').value.trim();
-
-            document.getElementById('passwordZipModal').classList.remove('active');
-            document.getElementById('zipPassword').value = '';
-
-            if (pendingZipImages.length === 0) return;
-
-            showToast(`Creating ZIP with ${pendingZipImages.length} images...`, 'success');
-
-            try {
-                const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"), {
-                    password: password || undefined,
-                    encryptionStrength: password ? 3 : undefined,
-                });
-
-                for (let i = 0; i < pendingZipImages.length; i++) {
-                    const key = pendingZipImages[i];
-                    const url = `${WORKER_URL}/api/image/${encodeURIComponent(key)}`;
-                    const filename = key.split('/').pop();
-
-                    try {
-                        const response = await fetch(url);
-                        const blob = await response.blob();
-
-                        await zipWriter.add(filename, new zip.BlobReader(blob), {
-                            level: 0
-                        });
-
-                        if ((i + 1) % 5 === 0 || i === pendingZipImages.length - 1) {
-                            showToast(`Processing ${i + 1}/${pendingZipImages.length}...`, 'success');
-                        }
-                    } catch (error) {
-                        console.error(`Failed to add ${filename}:`, error);
-                    }
-                }
-
-                const zipBlob = await zipWriter.close();
-
-                const zipFilename = `${currentFolder.replace(/\//g, '_') || 'gallery'}_${new Date().getTime()}.zip`;
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(zipBlob);
-                link.download = zipFilename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
-
-                const protectedMsg = password ? '🔒 password-protected' : '';
-                showToast(`✓ Downloaded ${pendingZipImages.length} images as ${protectedMsg} ZIP`, 'success');
-
-                pendingZipImages = [];
-                exitSelectionMode();
-            } catch (error) {
-                console.error('ZIP creation failed:', error);
-                showToast('Failed to create ZIP file', 'error');
-            }
-        }
-
-        async function downloadFolderAsZip() {
-            if (!currentFolder) {
-                showToast('Please select a folder first', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${WORKER_URL}/api/list/${encodeURIComponent(currentFolder)}`);
-                const images = await response.json();
-
-                if (images.length === 0) {
-                    showToast('Folder is empty', 'error');
-                    return;
-                }
-
-                pendingZipImages = images.map(img => img.key);
-                document.getElementById('passwordZipModal').classList.add('active');
-                document.getElementById('zipPassword').focus();
-            } catch (error) {
-                showToast('Failed to load folder', 'error');
-            }
-        }
-
-        async function deleteSelected() {
-            if (selectedImages.length === 0) return;
-
-            if (!confirm(`Delete ${selectedImages.length} selected images?`)) return;
-
-            try {
-                for (const key of selectedImages) {
-                    await fetch(`${WORKER_URL}/api/delete-file/${encodeURIComponent(key)}`, {
-                        method: 'DELETE'
-                    });
-                }
-
-                showToast(`✓ Deleted ${selectedImages.length} images`, 'success');
-                exitSelectionMode();
-                loadGallery(currentFolder);
-                loadStorageStats();
-            } catch (error) {
-                showToast('Delete failed', 'error');
-            }
-        }
-
-        async function loadStorageStats() {
-            try {
-                const response = await fetch(`${WORKER_URL}/api/storage-stats`);
-                const stats = await response.json();
-
-                const usedMB = parseFloat(stats.totalSizeMB);
-                const usedGB = parseFloat(stats.totalSizeGB);
-                const freeGB = 10;
-                const percentUsed = (usedGB / freeGB * 100).toFixed(1);
-
-                document.getElementById('storageInfo').style.display = 'flex';
-
-                if (usedGB >= 1) {
-                    document.getElementById('storageUsed').textContent = `${usedGB} GB`;
-                } else {
-                    document.getElementById('storageUsed').textContent = `${usedMB} MB`;
-                }
-
-                document.getElementById('storagePercent').textContent = `${percentUsed}%`;
-                document.getElementById('storageBarFill').style.width = `${Math.min(percentUsed, 100)}%`;
-
-                const barFill = document.getElementById('storageBarFill');
-                if (percentUsed >= 90) {
-                    barFill.style.background = 'var(--destructive)';
-                } else if (percentUsed >= 70) {
-                    barFill.style.background = 'var(--primary-color)';
-                } else {
-                    barFill.style.background = 'var(--success)';
-                }
-            } catch (error) {
-                console.error('Failed to load storage stats:', error);
-            }
-        }
-
+function navigateToPath(index) {
+    if (index === -1) {
+        currentPath = [];
+        currentFolder = '';
         loadFolders('');
-        loadStorageStats();
+        document.getElementById('gallery').innerHTML = '';
+    } else {
+        currentPath = currentPath.slice(0, index + 1);
+        currentFolder = currentPath.join('/');
+        loadFolders(currentFolder);
+        loadGallery(currentFolder);
+    }
+}
+
+function updateBreadcrumb() {
+    const breadcrumb = document.getElementById('breadcrumb');
+    breadcrumb.innerHTML = '';
+    
+    const root = document.createElement('span');
+    root.className = 'breadcrumb-item';
+    root.textContent = '🏠 Home';
+    root.onclick = () => navigateToPath(-1);
+    breadcrumb.appendChild(root);
+    
+    currentPath.forEach((segment, index) => {
+        const separator = document.createElement('span');
+        separator.className = 'breadcrumb-separator';
+        separator.textContent = '/';
+        breadcrumb.appendChild(separator);
+        
+        const item = document.createElement('span');
+        item.className = index === currentPath.length - 1 ? 'breadcrumb-item current' : 'breadcrumb-item';
+        item.textContent = segment;
+        if (index < currentPath.length - 1) {
+            item.onclick = () => navigateToPath(index);
+        }
+        breadcrumb.appendChild(item);
+    });
+}
+        loadFolders('');
+
+        // Folder upload handler
+document.getElementById('folderInput').addEventListener('change', async function() {
+    const files = this.files;
+    if (files.length === 0) return;
+    
+    // Get folder name from first file's path
+    const firstPath = files[0].webkitRelativePath;
+    const folderName = firstPath.split('/')[0];
+    
+    // Ask if user wants to create a new folder or use existing
+    const createNew = confirm(`Upload ${files.length} file(s) from folder "${folderName}".\n\nClick OK to create new folder, or Cancel to select existing folder.`);
+    
+    let targetFolder;
+    if (createNew) {
+        // Create new folder with the name from the uploaded folder
+        try {
+            await fetch(`${WORKER_URL}/api/create-folder`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ folderName })
+            });
+            targetFolder = folderName;
+            await loadFolders('');
+        } catch (error) {
+            showToast('Failed to create folder', 'error');
+            return;
+        }
+    } else {
+        if (!currentFolder) {
+            showToast('Please select a folder first', 'error');
+            return;
+        }
+        targetFolder = currentFolder;
+    }
+    
+    // Upload all files while preserving folder structure
+    try {
+        let uploadedCount = 0;
+        showToast(`Uploading ${files.length} files...`, 'success');
+        
+        for (const file of files) {
+            // Get relative path to preserve folder structure
+            const relativePath = file.webkitRelativePath;
+            // Remove the root folder name, keep subfolder structure
+            const pathParts = relativePath.split('/');
+            pathParts.shift(); // Remove root folder name
+            const subPath = pathParts.join('/');
+            
+            const fileName = `${Date.now()}-${uploadedCount}-${subPath}`;
+            
+            await fetch(`${WORKER_URL}/api/upload/${targetFolder}/${fileName}`, {
+                method: 'PUT',
+                body: file,
+                headers: { 'Content-Type': file.type }
+            });
+            
+            uploadedCount++;
+            
+            // Update progress every 10 files
+            if (uploadedCount % 10 === 0) {
+                showToast(`Uploaded ${uploadedCount}/${files.length} files...`, 'success');
+            }
+        }
+        
+        showToast(`✓ Successfully uploaded ${uploadedCount} files!`, 'success');
+        loadGallery(targetFolder);
+        this.value = '';
+    } catch (error) {
+        showToast('Upload failed', 'error');
+    }
+});
+
     </script>
 </body>
 </html>
