@@ -719,13 +719,13 @@
     </div>
 
     <script>
-        const PASSWORD_HASH = 'd16f88f0b0533679c362fc029803f537f331ccd16da8bf7269c177b0bef149ae';
+        const PASSWORD_HASH = 'd025e49b7a3f5b5ff38e5f62c5478b7e0de9a59d8a631032e543df224f1ac2023d2cd8ac51dcd061730160658f59518c489e705fbb144bd5271c0b9b84870f89';
         const AUTH_DURATION = 60 * 60 * 1000;
 
         async function hashPassword(password) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password);
-            const hash = await crypto.subtle.digest('SHA-256', data);
+            const hash = await crypto.subtle.digest('SHA-512', data);
             return Array.from(new Uint8Array(hash))
                 .map(b => b.toString(16).padStart(2, '0'))
                 .join('');
