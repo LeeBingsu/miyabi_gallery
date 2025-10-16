@@ -1032,12 +1032,6 @@
     updateBreadcrumb();
 }
 
-            currentPath.push(folderName);
-            currentFolder = currentPath.join('/');
-            loadFolders(currentFolder);
-            loadGallery(currentFolder);
-        }
-
         function navigateToPath(index) {
             if (index === -1) {
                 currentPath = [];
