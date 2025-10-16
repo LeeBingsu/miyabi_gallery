@@ -1127,23 +1127,16 @@
                 const folderList = document.getElementById('folderList');
                 folderList.innerHTML = '';
 
-                // Sort folders
-                folders.sort((a, b) => a.localeCompare(b));
-
                 folders.forEach(folder => {
                     const btn = document.createElement('button');
                     btn.className = 'folder-pill';
                     btn.innerHTML = `📁 ${folder}`;
-                    btn.onclick = () => {
-                        console.log('Folder clicked:', folder);
-                        navigateToFolder(folder);
-                    };
+                    btn.onclick = () => navigateToFolder(folder);
                     folderList.appendChild(btn);
                 });
 
                 updateBreadcrumb();
             } catch (error) {
-                console.error('Load folders error:', error);
                 showToast('Failed to load folders', 'error');
             }
         }
@@ -1298,10 +1291,37 @@
         }
 
         async function showCreateFolder() {
-            const folderName = prompt('New folder name:');
-            if (!folderName) return;
+            let folderName = prompt('New folder name:');
+            if (!folderName || folderName.trim() === '') {
+                showToast('Please enter a valid folder name', 'error');
+                return;
+            }
 
+            folderName = folderName.trim();
             const folderPath = currentFolder ? `${currentFolder}/${folderName}` : folderName;
+
+            try {
+                await fetch(`${WORKER_URL}/api/create-folder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folderPath })
+                });
+
+                showToast('✓ Folder created', 'success');
+
+                // Reload folders with delay to allow R2 propagation
+                await loadFolders(currentFolder);
+
+                // Double-check after 500ms
+                setTimeout(async () => {
+                    await loadFolders(currentFolder);
+                }, 500);
+
+            } catch (error) {
+                console.error('Create folder error:', error);
+                showToast('Failed to create folder', 'error');
+            }
+        }` : folderName;
 
             try {
                 await fetch(`${WORKER_URL}/api/create-folder`, {
