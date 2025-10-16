@@ -887,7 +887,7 @@
             return Array.from(new Uint8Array(hash))
                 .map(b => b.toString(16).padStart(2, '0'))
                 .join('');
-        }
+        };
 
         async function checkPassword() {
             const input = document.getElementById('passwordInput').value;
@@ -1024,7 +1024,7 @@
         let isSelectionMode = false;
         let pendingZipImages = [];
 
-        async function navigateToFolder(folderName) {
+        function navigateToFolder(folderName) {
     currentPath.push(folderName);
     currentFolder = currentPath.join('/');
     loadFolders(currentFolder);
@@ -1114,9 +1114,8 @@
             progressCancel = true;
             hideProgress();
             showToast('Cancelled', 'error');
-        }
+        };
 
-        
         async function loadFolders(parentPath = '') {
             try {
                 const response = await fetch(`${WORKER_URL}/api/folders?parent=${encodeURIComponent(parentPath)}`);
@@ -1137,7 +1136,7 @@
             } catch (error) {
                 showToast('Failed to load folders', 'error');
             }
-        }
+        };
 
         async function loadGallery(folder) {
             currentFolder = folder;
@@ -1286,13 +1285,30 @@
             } catch (error) {
                 showToast('Failed to delete', 'error');
             }
-        }
+        };
 
-        async async function showCreateFolder() {
-    let folderName = prompt('New folder name:');
-    if (!folderName || folderName.trim() === '') return;
-    folderName = folderName.trim();
-    const folderPath = currentFolder ? `${currentFolder}/${folderName}` : folderName;
+        async function showCreateFolder() {
+            let folderName = prompt('New folder name:');
+            if (!folderName || folderName.trim() === '') return;
+
+            folderName = folderName.trim();
+            const folderPath = currentFolder ? `${currentFolder}/${folderName}` : folderName;
+
+            try {
+                await fetch(`${WORKER_URL}/api/create-folder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folderPath })
+                });
+
+                showToast('✓ Folder created', 'success');
+                await loadFolders(currentFolder);
+                setTimeout(() => { loadFolders(currentFolder); }, 500);
+            } catch (error) {
+                console.error('Create folder error:', error);
+                showToast('Failed to create folder', 'error');
+            }
+        }/${folderName}` : folderName;
     try {
         await fetch(`${WORKER_URL}/api/create-folder`, {
             method: 'POST',
@@ -1345,7 +1361,7 @@
             } catch (error) {
                 showToast('Failed to create folder', 'error');
             }
-        }
+        };
 
         async function showRenameFolder() {
             if (!currentFolder) { showToast('Select a folder first', 'error'); return; }
@@ -1371,7 +1387,7 @@
             } catch (error) {
                 showToast('Failed to rename', 'error');
             }
-        }
+        };
 
         async function showDeleteFolder() {
             if (!currentFolder) { showToast('Select a folder first', 'error'); return; }
@@ -1477,7 +1493,7 @@
             document.getElementById('passwordZipModal').classList.remove('active');
             document.getElementById('zipPassword').value = '';
             pendingZipImages = [];
-        }
+        };
 
         async function createZipWithPassword() {
             const password = document.getElementById('zipPassword').value.trim();
@@ -1536,7 +1552,7 @@
                 console.error('ZIP creation failed:', error);
                 showToast('Failed to create ZIP file', 'error');
             }
-        }
+        };
 
         async function downloadFolderAsZip() {
             if (!currentFolder) {
@@ -1559,7 +1575,7 @@
             } catch (error) {
                 showToast('Failed to load folder', 'error');
             }
-        }
+        };
 
         async function deleteSelected() {
             if (selectedImages.length === 0) return;
@@ -1580,7 +1596,7 @@
             } catch (error) {
                 showToast('Delete failed', 'error');
             }
-        }
+        };
 
         async function loadStorageStats() {
             try {
