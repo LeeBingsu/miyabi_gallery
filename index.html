@@ -444,8 +444,10 @@
             }
 
             .pixai-icon {
-                width: 24px;
-                height: 24px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
             }
 
             .pixai-shortcut::before {
@@ -686,11 +688,8 @@
 </head>
 <body>
     <!-- PixAI Shortcut Button -->
-    <a href="https://pixai.art/kr/generator/image" target="_blank" class="pixai-shortcut" title="Generate AI Art">
-        <svg class="pixai-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 1L15.09 8.26L23 9.27L17.5 14.14L19.18 21.82L12 17.77L4.82 21.82L6.5 14.14L1 9.27L8.91 8.26L12 1Z" fill="white"/>
-            <path d="M12 6L10.3 10.6L5.5 11.1L9 14.3L8 19L12 16.5L16 19L15 14.3L18.5 11.1L13.7 10.6L12 6Z" fill="rgba(255,255,255,0.3)"/>
-        </svg>
+    <a href="https://pixai.art/generator/image" target="_blank" class="pixai-shortcut" title="Generate AI Art">
+        <img src="pixai-logo.png" alt="PixAI" class="pixai-icon">
     </a>
 
     <div class="viewing-area">
