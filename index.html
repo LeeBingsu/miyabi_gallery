@@ -585,10 +585,16 @@
             <div class="folder-container" id="folderList"></div>
             
             <div class="action-bar">
-                <label class="file-label" for="fileInput">
-                    <span>📷</span> Upload Photos
-                </label>
-                <input type="file" id="fileInput" multiple accept="image/*">
+            <label class="file-label" for="fileInput">
+        <span>📷</span> Upload Photos
+    </label>
+    <input type="file" id="fileInput" multiple accept="image/*">
+    
+    <label class="file-label" for="folderInput" style="background: var(--secondary-color);">
+        <span>📂</span> Upload Folder
+    </label>
+    <input type="file" id="folderInput" webkitdirectory directory multiple>
+
                 
                 <button class="btn btn-primary" onclick="showCreateFolder()">
                     <span>📁</span> New Folder
@@ -811,6 +817,79 @@
         }
         
         loadFolders();
+
+        // Folder upload handler
+document.getElementById('folderInput').addEventListener('change', async function() {
+    const files = this.files;
+    if (files.length === 0) return;
+    
+    // Get folder name from first file's path
+    const firstPath = files[0].webkitRelativePath;
+    const folderName = firstPath.split('/')[0];
+    
+    // Ask if user wants to create a new folder or use existing
+    const createNew = confirm(`Upload ${files.length} file(s) from folder "${folderName}".\n\nClick OK to create new folder, or Cancel to select existing folder.`);
+    
+    let targetFolder;
+    if (createNew) {
+        // Create new folder with the name from the uploaded folder
+        try {
+            await fetch(`${WORKER_URL}/api/create-folder`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ folderName })
+            });
+            targetFolder = folderName;
+            await loadFolders();
+        } catch (error) {
+            showToast('Failed to create folder', 'error');
+            return;
+        }
+    } else {
+        if (!currentFolder) {
+            showToast('Please select a folder first', 'error');
+            return;
+        }
+        targetFolder = currentFolder;
+    }
+    
+    // Upload all files while preserving folder structure
+    try {
+        let uploadedCount = 0;
+        showToast(`Uploading ${files.length} files...`, 'success');
+        
+        for (const file of files) {
+            // Get relative path to preserve folder structure
+            const relativePath = file.webkitRelativePath;
+            // Remove the root folder name, keep subfolder structure
+            const pathParts = relativePath.split('/');
+            pathParts.shift(); // Remove root folder name
+            const subPath = pathParts.join('/');
+            
+            const fileName = `${Date.now()}-${uploadedCount}-${subPath}`;
+            
+            await fetch(`${WORKER_URL}/api/upload/${targetFolder}/${fileName}`, {
+                method: 'PUT',
+                body: file,
+                headers: { 'Content-Type': file.type }
+            });
+            
+            uploadedCount++;
+            
+            // Update progress every 10 files
+            if (uploadedCount % 10 === 0) {
+                showToast(`Uploaded ${uploadedCount}/${files.length} files...`, 'success');
+            }
+        }
+        
+        showToast(`✓ Successfully uploaded ${uploadedCount} files!`, 'success');
+        loadGallery(targetFolder);
+        this.value = '';
+    } catch (error) {
+        showToast('Upload failed', 'error');
+    }
+});
+
     </script>
 </body>
 </html>
