@@ -1024,13 +1024,9 @@
         let pendingZipImages = [];
 
         function navigateToFolder(folderName) {
-            console.log('Navigating to folder:', folderName);
-            currentPath.push(folderName);
-            currentFolder = currentPath.join('/');
-            loadFolders(currentFolder);
-            loadGallery(currentFolder);
-            updateBreadcrumb();
-        }
+            if (currentPath[currentPath.length - 1] === folderName) {
+                return;
+            }
 
             currentPath.push(folderName);
             currentFolder = currentPath.join('/');
@@ -1135,7 +1131,7 @@
                     const btn = document.createElement('button');
                     btn.className = 'folder-pill';
                     btn.innerHTML = `📁 ${folder}`;
-                    btn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); navigateToFolder(folder); };
+                    btn.onclick = () => { navigateToFolder(folder); };
                     folderList.appendChild(btn);
                 });
 
