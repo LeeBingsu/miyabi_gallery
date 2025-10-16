@@ -734,14 +734,14 @@
         async function checkPassword() {
             const input = document.getElementById('passwordInput').value;
 
-            if (input.length >= 5) {
+            if (input.length >= 1) {
                 const hash = await hashPassword(input);
 
                 if (hash === PASSWORD_HASH) {
                     const expiryTime = Date.now() + AUTH_DURATION;
                     localStorage.setItem('galleryAuth', expiryTime.toString());
                     document.getElementById('passwordModal').style.display = 'none';
-                } else if (input.length > 5) {
+                } else {
                     document.getElementById('errorMsg').style.display = 'block';
                     setTimeout(() => {
                         document.getElementById('errorMsg').style.display = 'none';
