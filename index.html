@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miyabi Gallery</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --primary-color: #007AFF;
+            --secondary-color: #5856D6;
+            --background: #F2F2F7;
+            --card-background: #FFFFFF;
+            --text-primary: #000000;
+            --text-secondary: #8E8E93;
+            --border-color: #E5E5EA;
+            --destructive: #FF3B30;
+            --success: #34C759;
+            --radius-large: 20px;
+            --radius-medium: 12px;
+            --radius-small: 8px;
+            --shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: #000000;
+                --card-background: #1C1C1E;
+                --text-primary: #FFFFFF;
+                --text-secondary: #8E8E93;
+                --border-color: #38383A;
+            }
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        /* ============================================
+           MOBILE FIRST (320px - 767px)
+           Samsung phones, iPhones
+           ============================================ */
+        
+        .viewing-area {
+            padding: 40px 16px 16px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+        
+        .interaction-area {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 16px 40px;
+        }
+        
+        .card {
+            background: var(--card-background);
+            border-radius: var(--radius-large);
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+        
+
+        /* Breadcrumb Navigation */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: var(--background);
+            border-radius: var(--radius-medium);
+            font-size: 14px;
+        }
+
+        .breadcrumb-item {
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .breadcrumb-item:hover {
+            opacity: 0.7;
+        }
+
+        .breadcrumb-item.current {
+            color: var(--text-primary);
+            cursor: default;
+            font-weight: 600;
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-secondary);
+            user-select: none;
+        }
+
+        .folder-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .folder-pill {
+            padding: 10px 16px;
+            background: var(--background);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+        }
+        
+        .folder-pill:active {
+            transform: scale(0.95);
+        }
+        
+        .folder-pill.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .action-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: var(--radius-medium);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .btn:active {
+            transform: scale(0.96);
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: var(--background);
+            color: var(--text-primary);
+        }
+        
+        .btn-destructive {
+            background: var(--destructive);
+            color: white;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .file-label {
+            padding: 12px 16px;
+            background: var(--success);
+            color: white;
+            border-radius: var(--radius-medium);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .file-label:active {
+            transform: scale(0.96);
+        }
+        
+        /* Mobile Gallery: 2 columns */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        
+        .gallery-item {
+            position: relative;
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: var(--radius-medium);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .gallery-item:active {
+            transform: scale(0.98);
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 59, 48, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .gallery-item:hover .delete-btn,
+        .gallery-item:active .delete-btn {
+            opacity: 1;
+        }
+        
+        .delete-btn:active {
+            transform: scale(0.9);
+        }
+        
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        .lightbox.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: var(--radius-large);
+        }
+        
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .close:active {
+            transform: scale(0.9);
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--card-background);
+            padding: 16px 24px;
+            border-radius: var(--radius-medium);
+            box-shadow: var(--shadow-hover);
+            font-size: 15px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000;
+            max-width: 90%;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .toast.success {
+            color: var(--success);
+        }
+        
+        .toast.error {
+            color: var(--destructive);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        /* ============================================
+           TABLET PORTRAIT (768px - 1023px)
+           iPad, Samsung Galaxy Tab
+           ============================================ */
+        
+
+        /* Floating PixAI Button */
+        .pixai-shortcut {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .pixai-shortcut:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .pixai-shortcut:active {
+            transform: scale(0.95);
+        }
+
+        .pixai-icon {
+            width: 28px;
+            height: 28px;
+        }
+
+        .pixai-shortcut::before {
+            content: 'Generate AI Art';
+            position: absolute;
+            right: 70px;
+            background: var(--card-background);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .pixai-shortcut:hover::before {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .pixai-shortcut {
+                width: 48px;
+                height: 48px;
+                top: 16px;
+                right: 16px;
+            }
+
+            .pixai-icon {
+                width: 24px;
+                height: 24px;
+            }
+
+            .pixai-shortcut::before {
+                display: none;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .viewing-area {
+                padding: 50px 24px 20px;
+            }
+            
+            h1 {
+                font-size: 32px;
+            }
+            
+            .subtitle {
+                font-size: 17px;
+            }
+            
+            .interaction-area {
+                max-width: 100%;
+                padding: 0 24px 40px;
+            }
+            
+            .card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .folder-container {
+                margin-bottom: 16px;
+                padding-bottom: 16px;
+            }
+            
+            .folder-pill {
+                padding: 10px 20px;
+                font-size: 15px;
+            }
+            
+            /* Tablet: 3-4 buttons per row */
+            .action-bar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            
+            .btn, .file-label {
+                padding: 12px 20px;
+                font-size: 15px;
+                flex: 0 1 auto;
+            }
+            
+            /* Tablet Gallery: 4 columns */
+            .gallery {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+            
+            .delete-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 18px;
+            }
+        }
+        
+        /* ============================================
+           TABLET LANDSCAPE & SMALL DESKTOP (1024px - 1439px)
+           iPad landscape, Windows laptops
+           ============================================ */
+        
+        @media (min-width: 1024px) {
+            .viewing-area {
+                padding: 60px 32px 24px;
+            }
+            
+            h1 {
+                font-size: 36px;
+            }
+            
+            .interaction-area {
+                max-width: 1400px;
+                padding: 0 32px 60px;
+            }
+            
+            .card {
+                padding: 24px;
+            }
+            
+            /* Desktop: all buttons in one row */
+            .action-bar {
+                gap: 12px;
+            }
+            
+            .btn, .file-label {
+                padding: 12px 24px;
+                font-size: 15px;
+            }
+            
+            /* Small Desktop Gallery: 5 columns */
+            .gallery {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 16px;
+            }
+            
+            .gallery-item:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-hover);
+            }
+            
+            /* Show delete button on hover for desktop */
+            .gallery-item .delete-btn {
+                opacity: 0;
+            }
+            
+            .gallery-item:hover .delete-btn {
+                opacity: 1;
+            }
+        }
+        
+        /* ============================================
+           LARGE DESKTOP (1440px - 1919px)
+           Windows desktops, MacBook Pro
+           ============================================ */
+        
+        @media (min-width: 1440px) {
+            h1 {
+                font-size: 40px;
+            }
+            
+            .viewing-area {
+                padding: 80px 40px 32px;
+            }
+            
+            .interaction-area {
+                max-width: 1600px;
+                padding: 0 40px 80px;
+            }
+            
+            .card {
+                padding: 28px;
+            }
+            
+            /* Large Desktop Gallery: 6 columns */
+            .gallery {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 20px;
+            }
+        }
+        
+        /* ============================================
+           ULTRA-WIDE (1920px+)
+           4K displays, ultra-wide monitors
+           ============================================ */
+        
+        @media (min-width: 1920px) {
+            h1 {
+                font-size: 44px;
+            }
+            
+            .subtitle {
+                font-size: 19px;
+            }
+            
+            .viewing-area {
+                padding: 100px 60px 40px;
+            }
+            
+            .interaction-area {
+                max-width: 2000px;
+                padding: 0 60px 100px;
+            }
+            
+            .card {
+                padding: 32px;
+            }
+            
+            .folder-pill {
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+            
+            .btn, .file-label {
+                padding: 14px 28px;
+                font-size: 16px;
+            }
+            
+            /* Ultra-wide Gallery: 8 columns */
+            .gallery {
+                grid-template-columns: repeat(8, 1fr);
+                gap: 24px;
+            }
+            
+            .delete-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 20px;
+            }
+        }
+        
+        /* ============================================
+           ORIENTATION SPECIFIC
+           ============================================ */
+        
+        /* Mobile Landscape */
+        @media (max-width: 767px) and (orientation: landscape) {
+            .gallery {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .viewing-area {
+                padding: 24px 16px 12px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+        
+        /* Tablet Landscape optimizations */
+        @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
+            .gallery {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+        
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .delete-btn {
+                opacity: 1;
+            }
+            
+            .btn, .file-label, .folder-pill {
+                min-height: 44px; /* iOS/Android touch target */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- PixAI Shortcut Button -->
+    <a href="https://pixai.art/kr/generator/image" target="_blank" class="pixai-shortcut" title="Generate AI Art">
+        <svg class="pixai-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 1L15.09 8.26L23 9.27L17.5 14.14L19.18 21.82L12 17.77L4.82 21.82L6.5 14.14L1 9.27L8.91 8.26L12 1Z" fill="white"/>
+            <path d="M12 6L10.3 10.6L5.5 11.1L9 14.3L8 19L12 16.5L16 19L15 14.3L18.5 11.1L13.7 10.6L12 6Z" fill="rgba(255,255,255,0.3)"/>
+        </svg>
+    </a>
+
+    <div class="viewing-area">
+        <h1>Place of Miyabi</h1>
+    </div>
+    
+    <div class="interaction-area">
+        <div class="card">
+            <div class="breadcrumb" id="breadcrumb"></div>
+            <div class="folder-container" id="folderList"></div>
+            
+            <div class="action-bar">
+            <label class="file-label" for="fileInput">
+        <span>📷</span> Upload Photos
+    </label>
+    <input type="file" id="fileInput" multiple accept="image/*">
+    
+    <label class="file-label" for="folderInput" style="background: var(--secondary-color);">
+        <span>📂</span> Upload Folder
+    </label>
+    <input type="file" id="folderInput" webkitdirectory directory multiple>
+
+                
+                <button class="btn btn-primary" onclick="showCreateFolder()">
+                    <span>📁</span> New Folder
+                </button>
+                <button class="btn btn-secondary" onclick="showRenameFolder()">
+                    <span>✏️</span> Rename
+                </button>
+                <button class="btn btn-destructive" onclick="showDeleteFolder()">
+                    <span>🗑️</span> Delete Folder
+                </button>
+            </div>
+        </div>
+        
+        <div class="gallery" id="gallery"></div>
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-state-icon">📷</div>
+            <p>No photos yet. Upload some to get started!</p>
+        </div>
+    </div>
+    
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <button class="close">×</button>
+        <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+    </div>
+    
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const WORKER_URL = 'https://gallery-worker.b1ngsuk09.workers.dev';
+        
+        let currentFolder = '';
+        let currentPath = []; // Track folder path
+        
+        async function loadFolders(parentPath = '') {
+            try {
+                const response = await fetch(`${WORKER_URL}/api/folders?parent=${encodeURIComponent(parentPath)}`);
+                const folders = await response.json();
+
+                const folderList = document.getElementById('folderList');
+                folderList.innerHTML = '';
+
+                folders.forEach(folder => {
+                    const btn = document.createElement('button');
+                    btn.className = 'folder-pill';
+                    btn.innerHTML = `📁 ${folder}`;
+                    btn.onclick = () => navigateToFolder(folder);
+                    folderList.appendChild(btn);
+                });
+
+                updateBreadcrumb();
+            } catch (error) {
+                showToast('Failed to load folders', 'error');
+            }
+        }
+        
+        async function loadGallery(folder) {
+            currentFolder = folder;
+            
+            document.querySelectorAll('.folder-pill').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent === folder) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            try {
+                const response = await fetch(`${WORKER_URL}/api/list/${folder}`);
+                const images = await response.json();
+                
+                const gallery = document.getElementById('gallery');
+                const emptyState = document.getElementById('emptyState');
+                gallery.innerHTML = '';
+                
+                if (images.length === 0) {
+                    gallery.style.display = 'none';
+                    emptyState.style.display = 'block';
+                } else {
+                    gallery.style.display = 'grid';
+                    emptyState.style.display = 'none';
+                    
+                    images.forEach(img => {
+                        const item = document.createElement('div');
+                        item.className = 'gallery-item';
+                        item.innerHTML = `
+                            <img src="${WORKER_URL}/api/image/${img.key}" alt="Photo">
+                            <button class="delete-btn" onclick="deleteFile('${img.key}', event)">×</button>
+                        `;
+                        item.querySelector('img').onclick = () => openLightbox(`${WORKER_URL}/api/image/${img.key}`);
+                        gallery.appendChild(item);
+                    });
+                }
+            } catch (error) {
+                showToast('Failed to load images', 'error');
+            }
+        }
+        
+        document.getElementById('fileInput').addEventListener('change', async function() {
+            const files = this.files;
+            if (files.length === 0) return;
+            
+            if (!currentFolder) {
+                showToast('Please select or create a folder first', 'error');
+                return;
+            }
+            
+            try {
+                for (const file of files) {
+                    await fetch(`${WORKER_URL}/api/upload/${currentFolder}/${Date.now()}-${file.name}`, {
+                        method: 'PUT',
+                        body: file,
+                        headers: { 'Content-Type': file.type }
+                    });
+                }
+                
+                showToast(`✓ Uploaded ${files.length} photo(s)`, 'success');
+                loadGallery(currentFolder);
+                this.value = '';
+            } catch (error) {
+                showToast('Upload failed', 'error');
+            }
+        });
+        
+        async function deleteFile(key, event) {
+            event.stopPropagation();
+            
+            if (!confirm('Delete this photo?')) return;
+            
+            try {
+                await fetch(`${WORKER_URL}/api/delete-file/${key}`, {
+                    method: 'DELETE'
+                });
+                
+                showToast('✓ Photo deleted', 'success');
+                loadGallery(currentFolder);
+            } catch (error) {
+                showToast('Failed to delete', 'error');
+            }
+        }
+        
+        async function showCreateFolder() {
+            const folderName = prompt('New folder name:');
+            if (!folderName) return;
+            
+            try {
+                await fetch(`${WORKER_URL}/api/create-folder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folderName })
+                });
+                
+                showToast('✓ Folder created', 'success');
+                loadFolders();
+            } catch (error) {
+                showToast('Failed to create folder', 'error');
+            }
+        }
+        
+        async function showRenameFolder() {
+            if (!currentFolder) {
+                showToast('Please select a folder first', 'error');
+                return;
+            }
+            
+            const newName = prompt(`Rename "${currentFolder}" to:`);
+            if (!newName) return;
+            
+            try {
+                await fetch(`${WORKER_URL}/api/rename-folder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ oldName: currentFolder, newName })
+                });
+                
+                showToast('✓ Folder renamed', 'success');
+                currentFolder = newName;
+                loadFolders();
+            } catch (error) {
+                showToast('Failed to rename', 'error');
+            }
+        }
+        
+        async function showDeleteFolder() {
+            if (!currentFolder) {
+                showToast('Please select a folder first', 'error');
+                return;
+            }
+            
+            if (!confirm(`Delete folder "${currentFolder}" and all its photos?`)) return;
+            
+            try {
+                await fetch(`${WORKER_URL}/api/delete-folder`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folderName: currentFolder })
+                });
+                
+                showToast('✓ Folder deleted', 'success');
+                currentFolder = '';
+                loadFolders();
+            } catch (error) {
+                showToast('Failed to delete folder', 'error');
+            }
+        }
+        
+        function openLightbox(imgSrc) {
+            document.getElementById('lightbox').classList.add('active');
+            document.getElementById('lightbox-img').src = imgSrc;
+        }
+        
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        loadFolders();
+
+        // Folder upload handler
+document.getElementById('folderInput').addEventListener('change', async function() {
+    const files = this.files;
+    if (files.length === 0) return;
+    
+    // Get folder name from first file's path
+    const firstPath = files[0].webkitRelativePath;
+    const folderName = firstPath.split('/')[0];
+    
+    // Ask if user wants to create a new folder or use existing
+    const createNew = confirm(`Upload ${files.length} file(s) from folder "${folderName}".\n\nClick OK to create new folder, or Cancel to select existing folder.`);
+    
+    let targetFolder;
+    if (createNew) {
+        // Create new folder with the name from the uploaded folder
+        try {
+            await fetch(`${WORKER_URL}/api/create-folder`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ folderName })
+            });
+            targetFolder = folderName;
+            await loadFolders();
+        } catch (error) {
+            showToast('Failed to create folder', 'error');
+            return;
+        }
+    } else {
+        if (!currentFolder) {
+            showToast('Please select a folder first', 'error');
+            return;
+        }
+        targetFolder = currentFolder;
+    }
+    
+    // Upload all files while preserving folder structure
+    try {
+        let uploadedCount = 0;
+        showToast(`Uploading ${files.length} files...`, 'success');
+        
+        for (const file of files) {
+            // Get relative path to preserve folder structure
+            const relativePath = file.webkitRelativePath;
+            // Remove the root folder name, keep subfolder structure
+            const pathParts = relativePath.split('/');
+            pathParts.shift(); // Remove root folder name
+            const subPath = pathParts.join('/');
+            
+            const fileName = `${Date.now()}-${uploadedCount}-${subPath}`;
+            
+            await fetch(`${WORKER_URL}/api/upload/${targetFolder}/${fileName}`, {
+                method: 'PUT',
+                body: file,
+                headers: { 'Content-Type': file.type }
+            });
+            
+            uploadedCount++;
+            
+            // Update progress every 10 files
+            if (uploadedCount % 10 === 0) {
+                showToast(`Uploaded ${uploadedCount}/${files.length} files...`, 'success');
+            }
+        }
+        
+        showToast(`✓ Successfully uploaded ${uploadedCount} files!`, 'success');
+        loadGallery(targetFolder);
+        this.value = '';
+    } catch (error) {
+        showToast('Upload failed', 'error');
+    }
+});
+
+    </script>
+</body>
+</html>
