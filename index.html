@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiyGal</title>
+    <title>Miygal</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -11,9 +11,6 @@
 
     <!-- zip.js Library with Password Support -->
     <script src="https://unpkg.com/@zip.js/zip.js@2.7.72/dist/zip-full.min.js"></script>
-    
-    <!-- Hammer.js for swipe gestures -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 
     <style>
         * {
@@ -186,7 +183,7 @@
 
         .btn-secondary {
             background: var(--background);
-            color: var(--primary-color);
+            color: var(--text-primary);
         }
 
         .btn-destructive {
@@ -194,353 +191,172 @@
             color: white;
         }
 
-        .btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
+        input[type="file"] {
+            display: none;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 12px;
-        }
-
-        .thumbnail {
-            aspect-ratio: 1;
-            position: relative;
+        .file-label {
+            padding: 12px 16px;
+            background: var(--success);
+            color: white;
             border-radius: var(--radius-medium);
-            overflow: hidden;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
         }
 
-        .thumbnail:active {
-            transform: scale(0.95);
+        .file-label:active {
+            transform: scale(0.96);
         }
 
-        .thumbnail img {
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .gallery-item {
+            position: relative;
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: var(--radius-medium);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .gallery-item:active {
+            transform: scale(0.98);
+        }
+
+        .gallery-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .thumbnail .checkbox {
+        .delete-btn {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 24px;
-            height: 24px;
-            background: rgba(255, 255, 255, 0.9);
+            top: 6px;
+            right: 6px;
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 59, 48, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: none;
             border-radius: 50%;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0;
-            transition: opacity 0.2s ease;
+            z-index: 5;
         }
 
-        .thumbnail.selected .checkbox,
-        .selection-mode .thumbnail .checkbox {
+        .gallery-item:hover .delete-btn,
+        .gallery-item:active .delete-btn {
             opacity: 1;
         }
 
-        .thumbnail.selected .checkbox {
-            background: var(--primary-color);
-            color: white;
+        .delete-btn:active {
+            transform: scale(0.9);
         }
 
-        /* Image Viewer Modal */
-        .modal {
+        .lightbox {
             display: none;
             position: fixed;
+            z-index: 1000;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.95);
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
-        .modal.active {
+        .lightbox.active {
             display: flex;
-            flex-direction: column;
-            opacity: 1;
-        }
-
-        .modal-header {
-            padding: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-        }
-
-        .modal-close {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: var(--radius-small);
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .modal-image-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            position: relative;
-            overflow: hidden;
-            touch-action: pan-y pinch-zoom;
-        }
-
-        .modal-image-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeIn 0.2s ease;
         }
 
-        .modal-image-wrapper.swiping {
-            transition: none;
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
-        .modal-image {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            user-select: none;
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: var(--radius-large);
         }
 
-        .modal-nav {
+        .close {
             position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            backdrop-filter: blur(10px);
-            transition: background 0.2s ease;
-        }
-
-        .modal-nav:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .modal-nav.prev {
-            left: 16px;
-        }
-
-        .modal-nav.next {
-            right: 16px;
-        }
-
-        .modal-nav:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .modal-footer {
-            padding: 16px;
-            text-align: center;
-            color: white;
-            font-size: 14px;
-        }
-
-        /* Progress Bar */
-        .progress-container {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 400px;
-            background: var(--card-background);
-            border-radius: var(--radius-medium);
-            padding: 16px;
-            box-shadow: var(--shadow-hover);
-            z-index: 2000;
-            display: none;
-        }
-
-        .progress-container.active {
-            display: block;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateX(-50%) translateY(100px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(-50%) translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .progress-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .progress-cancel {
-            background: none;
-            border: none;
-            color: var(--destructive);
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            padding: 4px 8px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: var(--background);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--primary-color);
-            border-radius: 3px;
-            transition: width 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255, 255, 255, 0.3),
-                transparent
-            );
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% {
-                transform: translateX(-100%);
-            }
-            100% {
-                transform: translateX(100%);
-            }
-        }
-
-        .progress-text {
-            font-size: 12px;
-            color: var(--text-secondary);
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .progress-status {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
-
-        /* Background Upload Notification */
-        .bg-upload-notification {
-            position: fixed;
-            bottom: 20px;
+            top: 20px;
             right: 20px;
-            background: var(--success);
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 50%;
             color: white;
-            padding: 12px 20px;
+            font-size: 24px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .close:active {
+            transform: scale(0.9);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--card-background);
+            padding: 16px 24px;
             border-radius: var(--radius-medium);
             box-shadow: var(--shadow-hover);
-            z-index: 2001;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            animation: slideIn 0.3s ease;
-        }
-
-        .bg-upload-notification.active {
-            display: flex;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        input[type="password"] {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-medium);
             font-size: 15px;
-            background: var(--background);
-            color: var(--text-primary);
-            margin-bottom: 12px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000;
+            max-width: 90%;
         }
 
-        .password-form {
-            display: none;
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
         }
 
-        .password-form.active {
-            display: block;
+        .toast.success {
+            color: var(--success);
+        }
+
+        .toast.error {
+            color: var(--destructive);
         }
 
         .empty-state {
@@ -555,711 +371,1007 @@
             opacity: 0.5;
         }
 
-        .selection-info {
+        .pixai-shortcut {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .pixai-shortcut:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .pixai-shortcut:active {
+            transform: scale(0.95);
+        }
+
+        .pixai-icon {
+            width: 28px;
+            height: 28px;
+        }
+
+        /* STORAGE INFO - SMALLER AND HIGHER */
+        .storage-info {
+            position: fixed;
+            top: 10px;
+            right: 90px;
+            background: var(--card-background);
+            padding: 6px 12px;
+            border-radius: var(--radius-small);
+            box-shadow: var(--shadow);
+            font-size: 11px;
+            z-index: 998;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .storage-bar {
+            width: 80px;
+            height: 4px;
+            background: var(--background);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .storage-bar-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.3s ease;
+        }
+
+        .storage-text {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 10px;
+        }
+
+        .storage-text strong {
+            color: var(--text-primary);
+            font-size: 11px;
+        }
+
+        /* Selection Mode Styles */
+        .selection-mode .gallery-item {
+            cursor: pointer;
+        }
+
+        .gallery-item-checkbox {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 24px;
+            height: 24px;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.2s;
+            accent-color: var(--primary-color);
+        }
+
+        .selection-mode .gallery-item-checkbox {
+            opacity: 1;
+        }
+
+        .gallery-item.selected::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 122, 255, 0.3);
+            border: 3px solid var(--primary-color);
+            border-radius: var(--radius-medium);
+            pointer-events: none;
+        }
+
+        .bulk-action-bar {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             background: var(--card-background);
-            padding: 12px 24px;
-            border-radius: 20px;
+            padding: 16px 24px;
+            border-radius: var(--radius-large);
             box-shadow: var(--shadow-hover);
+            display: none;
+            gap: 12px;
+            align-items: center;
+            z-index: 999;
+            flex-wrap: wrap;
+        }
+
+        .bulk-action-bar.active {
+            display: flex;
+        }
+
+        .bulk-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-medium);
             font-size: 14px;
             font-weight: 600;
-            z-index: 999;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .bulk-btn:active {
+            transform: scale(0.96);
+        }
+
+        .bulk-btn-download {
+            background: var(--success);
+            color: white;
+        }
+
+        .bulk-btn-delete {
+            background: var(--destructive);
+            color: white;
+        }
+
+        .bulk-btn-cancel {
+            background: var(--background);
+            color: var(--text-primary);
+        }
+
+        .password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
             display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
         }
 
-        .selection-info.active {
-            display: block;
+        .password-modal.active {
+            display: flex;
         }
 
-        @media (max-width: 768px) {
-            .modal-nav {
-                display: none;
+        .password-modal-content {
+            background: var(--card-background);
+            padding: 30px;
+            border-radius: var(--radius-large);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .password-modal h3 {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .password-modal input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-medium);
+            font-size: 15px;
+            background: var(--background);
+            color: var(--text-primary);
+        }
+
+        .password-modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .password-modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius-medium);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .password-modal-buttons .btn-secondary {
+            background: var(--background);
+            color: var(--text-primary);
+        }
+
+        .password-modal-buttons .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        @media (max-width: 640px) {
+            .pixai-shortcut {
+                width: 48px;
+                height: 48px;
+                top: 16px;
+                right: 16px;
+            }
+
+            .pixai-icon {
+                width: 24px;
+                height: 24px;
+            }
+
+            .storage-info {
+                top: 70px;
+                right: 16px;
+                font-size: 10px;
+            }
+
+            .storage-bar {
+                width: 60px;
+            }
+
+            .bulk-action-bar {
+                bottom: 10px;
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+
+            .bulk-btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .viewing-area {
+                padding: 50px 24px 20px;
+            }
+
+            h1 {
+                font-size: 32px;
+            }
+
+            .subtitle {
+                font-size: 17px;
+            }
+
+            .interaction-area {
+                max-width: 1400px;
+                padding: 0 24px 40px;
+            }
+
+            .card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .action-bar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .btn, .file-label {
+                padding: 12px 20px;
+                font-size: 15px;
+                flex: 0 1 auto;
+            }
+
+            .gallery {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+
+            .gallery-item:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-hover);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .gallery {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 16px;
+            }
+        }
+
+        @media (min-width: 1440px) {
+            .gallery {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 20px;
+            }
+        }
+
+        @media (min-width: 1920px) {
+            .gallery {
+                grid-template-columns: repeat(8, 1fr);
+                gap: 24px;
+            }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .delete-btn {
+                opacity: 1;
+            }
+
+            .btn, .file-label, .folder-pill {
+                min-height: 44px;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Password Protection -->
+    <div id="passwordModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="background: var(--card-background); padding: 40px; border-radius: 20px; max-width: 400px; width: 90%; text-align: center;">
+            <h2 style="margin-bottom: 20px; color: var(--text-primary);">🔒 Gallery Access</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 30px;">Enter password to continue</p>
+            <input type="password" id="passwordInput" placeholder="Enter dot password" style="width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 12px; font-size: 16px; margin-bottom: 20px; background: var(--background); color: var(--text-primary);" autofocus>
+            <p id="errorMsg" style="color: var(--destructive); margin-top: 15px; display: none;">Incorrect password</p>
+        </div>
+    </div>
+
+    <script>
+        const PASSWORD_HASH = '3fb97d67d0041d9e3f03b9b6d89d860b1e07884f674336ebad64a8fd4288a4865655f0e68cc2acc978ed94d71d87672452d2850ddc90bccc0edaecb3bf135126';
+        const AUTH_DURATION = 60 * 60 * 1000;
+
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hash = await crypto.subtle.digest('SHA-512', data);
+            return Array.from(new Uint8Array(hash))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        async function checkPassword() {
+            const input = document.getElementById('passwordInput').value;
+
+            if (input.length >= 1) {
+                const hash = await hashPassword(input);
+
+                if (hash === PASSWORD_HASH) {
+                    const expiryTime = Date.now() + AUTH_DURATION;
+                    localStorage.setItem('galleryAuth', expiryTime.toString());
+                    document.getElementById('passwordModal').style.display = 'none';
+                } else {
+                    document.getElementById('errorMsg').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('errorMsg').style.display = 'none';
+                    }, 2000);
+                }
+            }
+        }
+
+        document.getElementById('passwordInput').addEventListener('input', checkPassword);
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        function checkAuth() {
+            const authExpiry = localStorage.getItem('galleryAuth');
+            if (authExpiry) {
+                const expiryTime = parseInt(authExpiry);
+                const currentTime = Date.now();
+
+                if (currentTime < expiryTime) {
+                    document.getElementById('passwordModal').style.display = 'none';
+                } else {
+                    localStorage.removeItem('galleryAuth');
+                }
+            }
+        }
+
+        checkAuth();
+    </script>
+
+    <a href="https://pixai.art/generator/image" target="_blank" class="pixai-shortcut" title="Generate AI Art">
+        <img src="pixai-logo.png" alt="PixAI" class="pixai-icon">
+    </a>
+
+    <div class="storage-info" id="storageInfo">
+        <div class="storage-text">
+            <strong id="storageUsed">0 MB</strong> / 10 GB
+        </div>
+        <div class="storage-bar">
+            <div class="storage-bar-fill" id="storageBarFill" style="width: 0%"></div>
+        </div>
+        <span class="storage-text" id="storagePercent">0%</span>
+    </div>
+
+    <div class="bulk-action-bar" id="bulkActionBar">
+        <span id="selectedCount">0 selected</span>
+        <button class="bulk-btn bulk-btn-download" onclick="downloadSelectedAsZip()">📦 Download ZIP</button>
+        <button class="bulk-btn bulk-btn-delete" onclick="deleteSelected()">🗑️ Delete</button>
+        <button class="bulk-btn bulk-btn-cancel" onclick="exitSelectionMode()">Cancel</button>
+    </div>
+
+    <div class="password-modal" id="passwordZipModal">
+        <div class="password-modal-content">
+            <h3>🔒 Protect ZIP File</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Enter a password to protect the ZIP file (optional)</p>
+            <input type="password" id="zipPassword" placeholder="Enter password (leave empty for no password)">
+            <div class="password-modal-buttons">
+                <button class="btn-secondary" onclick="cancelZipPassword()">Cancel</button>
+                <button class="btn-primary" onclick="createZipWithPassword()">Create ZIP</button>
+            </div>
+        </div>
+    </div>
+
     <div class="viewing-area">
-        <h1>🖼️ Miygal</h1>
-        <p class="subtitle">Simple & Secure Image Gallery</p>
+        <h1>Miygal</h1>
     </div>
 
     <div class="interaction-area">
         <div class="card">
-            <div class="breadcrumb" id="breadcrumb">
-                <span class="breadcrumb-item" onclick="navigateTo([])">Home</span>
-            </div>
-
-            <div class="folder-container" id="folderContainer"></div>
+            <div class="breadcrumb" id="breadcrumb"></div>
+            <div class="folder-container" id="folderList"></div>
 
             <div class="action-bar">
-                <button class="btn btn-primary" onclick="document.getElementById('zipInput').click()">
-                    📁 Load ZIP
+                <label class="file-label" for="fileInput">
+                    <span>📷</span> Upload Photos
+                </label>
+                <input type="file" id="fileInput" multiple accept="image/*">
+
+                <label class="file-label" for="folderInput" style="background: var(--secondary-color);">
+                    <span>📂</span> Upload Folder
+                </label>
+                <input type="file" id="folderInput" webkitdirectory directory multiple>
+
+                <button class="btn btn-primary" onclick="showCreateFolder()">
+                    <span>📁</span> New Folder
                 </button>
-                <button class="btn btn-secondary" onclick="downloadCurrentFolder()" id="downloadBtn" disabled>
-                    💾 Download
+                <button class="btn btn-secondary" onclick="showRenameFolder()">
+                    <span>✏️</span> Rename
+                </button>
+                <button class="btn btn-destructive" onclick="showDeleteFolder()">
+                    <span>🗑️</span> Delete Folder
+                </button>
+                <button class="btn btn-secondary" onclick="downloadFolderAsZip()">
+                    <span>📦</span> Download Folder
+                </button>
+                <button class="btn btn-secondary" onclick="toggleSelectionMode()" id="selectBtn">
+                    <span>☑️</span> Select
                 </button>
             </div>
+        </div>
 
-            <div class="action-bar">
-                <button class="btn btn-secondary" onclick="toggleSelection()" id="selectBtn" disabled>
-                    ✓ Select
-                </button>
-                <button class="btn btn-destructive" onclick="deleteSelected()" id="deleteBtn" disabled style="display: none;">
-                    🗑️ Delete Selected
-                </button>
-            </div>
-
-            <input type="file" id="zipInput" accept=".zip" onchange="handleZipUpload(event)">
-
-            <div class="password-form" id="passwordForm">
-                <input type="password" id="passwordInput" placeholder="Enter ZIP password">
-                <button class="btn btn-primary" onclick="unlockZip()" style="width: 100%;">
-                    🔓 Unlock
-                </button>
-            </div>
-
-            <div class="grid" id="imageGrid"></div>
-            <div class="empty-state" id="emptyState">
-                <div class="empty-state-icon">📦</div>
-                <p>No images yet</p>
-                <p style="font-size: 13px; margin-top: 8px;">Load a ZIP file to get started</p>
-            </div>
+        <div class="gallery" id="gallery"></div>
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-state-icon">📷</div>
+            <p>No photos yet. Upload some to get started!</p>
         </div>
     </div>
 
-    <div class="selection-info" id="selectionInfo">
-        <span id="selectionCount">0</span> selected
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <button class="close">×</button>
+        <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
     </div>
 
-    <!-- Image Viewer Modal -->
-    <div class="modal" id="imageModal">
-        <div class="modal-header">
-            <span id="modalImageName"></span>
-            <button class="modal-close" onclick="closeModal()">Close</button>
-        </div>
-        <div class="modal-image-container" id="modalImageContainer">
-            <button class="modal-nav prev" id="prevBtn" onclick="navigateImage(-1)">‹</button>
-            <div class="modal-image-wrapper" id="modalImageWrapper">
-                <img id="modalImage" class="modal-image" alt="Viewing image">
-            </div>
-            <button class="modal-nav next" id="nextBtn" onclick="navigateImage(1)">›</button>
-        </div>
-        <div class="modal-footer">
-            <span id="modalImageCount"></span>
-        </div>
-    </div>
-
-    <!-- Progress Bar -->
-    <div class="progress-container" id="progressContainer">
-        <div class="progress-header">
-            <span class="progress-title" id="progressTitle">Uploading...</span>
-            <button class="progress-cancel" onclick="cancelProgress()">Cancel</button>
-        </div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-        <div class="progress-text">
-            <span id="progressPercent">0%</span>
-            <span id="progressSize">0 MB / 0 MB</span>
-        </div>
-        <div class="progress-status" id="progressStatus"></div>
-    </div>
-
-    <!-- Background Upload Notification -->
-    <div class="bg-upload-notification" id="bgUploadNotification">
-        <div class="spinner"></div>
-        <span>Uploading in background...</span>
-    </div>
+    <div class="toast" id="toast"></div>
 
     <script>
-        let fileStructure = {};
+        const WORKER_URL = 'https://gallery-worker.b1ngsuk09.workers.dev';
+
+        let currentFolder = '';
         let currentPath = [];
-        let currentImages = [];
-        let selectionMode = false;
-        let selectedImages = new Set();
-        let currentImageIndex = 0;
-        let zipFileReader = null;
-        let passwordRequired = false;
-        let currentPassword = null;
-        let modalSwipeHandler = null;
-        let abortController = null;
+        let selectedImages = [];
+        let isSelectionMode = false;
+        let pendingZipImages = [];
 
-        // Service Worker registration for background upload
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(err => {
-                console.log('Service Worker registration failed:', err);
-            });
-        }
-
-        async function handleZipUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            showProgress('Uploading', 0);
-            abortController = new AbortController();
-
-            try {
-                // Simulate chunked upload with progress
-                const chunkSize = 1024 * 1024; // 1MB chunks
-                let uploaded = 0;
-
-                for (let start = 0; start < file.size; start += chunkSize) {
-                    if (abortController.signal.aborted) {
-                        throw new Error('Upload cancelled');
-                    }
-
-                    const chunk = file.slice(start, Math.min(start + chunkSize, file.size));
-                    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate network delay
-
-                    uploaded = Math.min(start + chunkSize, file.size);
-                    const percent = (uploaded / file.size) * 100;
-                    updateProgress(percent, uploaded, file.size);
-                }
-
-                // Process the ZIP file
-                updateProgressStatus('Processing ZIP file...');
-                await loadZipFile(file);
-                
-                hideProgress();
-            } catch (error) {
-                console.error('Upload error:', error);
-                hideProgress();
-                alert(error.message);
-            }
-
-            event.target.value = '';
-        }
-
-        async function loadZipFile(file) {
-            try {
-                const reader = new zip.ZipReader(new zip.BlobReader(file));
-                zipFileReader = reader;
-
-                const entries = await reader.getEntries();
-                
-                // Check if password protected
-                if (entries.some(entry => entry.encrypted)) {
-                    passwordRequired = true;
-                    document.getElementById('passwordForm').classList.add('active');
-                    updateProgressStatus('Password required');
-                    return;
-                }
-
-                await processZipEntries(entries);
-            } catch (error) {
-                if (error.message.includes('password') || error.message.includes('encrypted')) {
-                    passwordRequired = true;
-                    document.getElementById('passwordForm').classList.add('active');
-                } else {
-                    alert('Error loading ZIP file: ' + error.message);
-                }
-            }
-        }
-
-        async function unlockZip() {
-            const password = document.getElementById('passwordInput').value;
-            if (!password) {
-                alert('Please enter a password');
+        function navigateToFolder(folderName) {
+            if (currentPath[currentPath.length - 1] === folderName) {
                 return;
             }
 
-            currentPassword = password;
-            showProgress('Unlocking', 0);
+            currentPath.push(folderName);
+            currentFolder = currentPath.join('/');
+            loadFolders(currentFolder);
+            loadGallery(currentFolder);
+        }
 
-            try {
-                const entries = await zipFileReader.getEntries();
-                await processZipEntries(entries, password);
-                document.getElementById('passwordForm').classList.remove('active');
-                document.getElementById('passwordInput').value = '';
-                hideProgress();
-            } catch (error) {
-                hideProgress();
-                alert('Invalid password or error unlocking ZIP');
+        function navigateToPath(index) {
+            if (index === -1) {
+                currentPath = [];
+                currentFolder = '';
+                loadFolders('');
+                document.getElementById('gallery').innerHTML = '';
+                document.getElementById('emptyState').style.display = 'block';
+            } else {
+                currentPath = currentPath.slice(0, index + 1);
+                currentFolder = currentPath.join('/');
+                loadFolders(currentFolder);
+                loadGallery(currentFolder);
             }
         }
 
-        async function processZipEntries(entries, password = null) {
-            fileStructure = {};
-            let processedCount = 0;
-            const totalEntries = entries.length;
-
-            for (const entry of entries) {
-                if (abortController && abortController.signal.aborted) {
-                    throw new Error('Processing cancelled');
-                }
-
-                if (!entry.directory) {
-                    const path = entry.filename.split('/');
-                    const fileName = path.pop();
-
-                    if (isImageFile(fileName)) {
-                        let current = fileStructure;
-                        path.forEach(folder => {
-                            if (folder) {
-                                if (!current[folder]) {
-                                    current[folder] = {};
-                                }
-                                current = current[folder];
-                            }
-                        });
-
-                        try {
-                            const blob = await entry.getData(
-                                new zip.BlobWriter(),
-                                password ? { password } : undefined
-                            );
-                            
-                            current[fileName] = {
-                                blob: blob,
-                                url: URL.createObjectURL(blob),
-                                name: fileName,
-                                size: entry.uncompressedSize
-                            };
-                        } catch (error) {
-                            console.error('Error extracting file:', fileName, error);
-                        }
-                    }
-                }
-
-                processedCount++;
-                const percent = (processedCount / totalEntries) * 100;
-                updateProgress(percent, processedCount, totalEntries, 'files');
-                updateProgressStatus(`Processing: ${fileName || 'folder'}`);
-            }
-
-            await zipFileReader.close();
-            renderCurrentView();
-        }
-
-        function isImageFile(filename) {
-            const ext = filename.toLowerCase().split('.').pop();
-            return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext);
-        }
-
-        function renderCurrentView() {
-            let current = fileStructure;
-            currentPath.forEach(folder => {
-                current = current[folder];
-            });
-
-            renderBreadcrumb();
-            renderFolders(current);
-            renderImages(current);
-            updateEmptyState();
-            updateButtons();
-        }
-
-        function renderBreadcrumb() {
+        function updateBreadcrumb() {
             const breadcrumb = document.getElementById('breadcrumb');
-            let html = '<span class="breadcrumb-item" onclick="navigateTo([])">Home</span>';
+            breadcrumb.innerHTML = '';
 
-            currentPath.forEach((folder, index) => {
-                html += '<span class="breadcrumb-separator">›</span>';
-                const isLast = index === currentPath.length - 1;
-                const path = currentPath.slice(0, index + 1);
-                
-                if (isLast) {
-                    html += `<span class="breadcrumb-item current">${folder}</span>`;
-                } else {
-                    html += `<span class="breadcrumb-item" onclick='navigateTo(${JSON.stringify(path)})'>${folder}</span>`;
+            const root = document.createElement('span');
+            root.className = 'breadcrumb-item';
+            root.textContent = '🏠 Home';
+            root.onclick = () => navigateToPath(-1);
+            breadcrumb.appendChild(root);
+
+            currentPath.forEach((segment, index) => {
+                const separator = document.createElement('span');
+                separator.className = 'breadcrumb-separator';
+                separator.textContent = '/';
+                breadcrumb.appendChild(separator);
+
+                const item = document.createElement('span');
+                item.className = index === currentPath.length - 1 ? 'breadcrumb-item current' : 'breadcrumb-item';
+                item.textContent = segment;
+                if (index < currentPath.length - 1) {
+                    item.onclick = () => navigateToPath(index);
                 }
+                breadcrumb.appendChild(item);
             });
-
-            breadcrumb.innerHTML = html;
         }
 
-        function renderFolders(current) {
-            const container = document.getElementById('folderContainer');
-            const folders = Object.keys(current).filter(key => typeof current[key] === 'object' && !current[key].blob);
+        async function loadFolders(parentPath = '') {
+            try {
+                const response = await fetch(`${WORKER_URL}/api/folders?parent=${encodeURIComponent(parentPath)}`);
+                const folders = await response.json();
 
-            if (folders.length === 0) {
-                container.style.display = 'none';
-                return;
-            }
+                const folderList = document.getElementById('folderList');
+                folderList.innerHTML = '';
 
-            container.style.display = 'flex';
-            container.innerHTML = folders.map(folder => 
-                `<button class="folder-pill" onclick="navigateToFolder('${folder}')">
-                    📁 ${folder}
-                </button>`
-            ).join('');
-        }
+                folders.forEach(folder => {
+                    const btn = document.createElement('button');
+                    btn.className = 'folder-pill';
+                    btn.innerHTML = `📁 ${folder}`;
+                    btn.onclick = () => navigateToFolder(folder);
+                    folderList.appendChild(btn);
+                });
 
-        function renderImages(current) {
-            const grid = document.getElementById('imageGrid');
-            const images = Object.keys(current).filter(key => current[key].blob);
-
-            currentImages = images.map(name => ({
-                name,
-                url: current[name].url,
-                blob: current[name].blob,
-                size: current[name].size
-            }));
-
-            if (images.length === 0) {
-                grid.innerHTML = '';
-                return;
-            }
-
-            grid.innerHTML = currentImages.map((img, index) => 
-                `<div class="thumbnail ${selectedImages.has(index) ? 'selected' : ''}" 
-                      onclick="handleThumbnailClick(${index})">
-                    <img src="${img.url}" alt="${img.name}" loading="lazy">
-                    <div class="checkbox">${selectedImages.has(index) ? '✓' : ''}</div>
-                </div>`
-            ).join('');
-        }
-
-        function updateEmptyState() {
-            const hasContent = Object.keys(fileStructure).length > 0;
-            document.getElementById('emptyState').style.display = hasContent ? 'none' : 'block';
-            document.getElementById('imageGrid').style.display = hasContent ? 'grid' : 'none';
-        }
-
-        function updateButtons() {
-            const hasContent = currentImages.length > 0;
-            document.getElementById('downloadBtn').disabled = !hasContent;
-            document.getElementById('selectBtn').disabled = !hasContent;
-        }
-
-        function navigateTo(path) {
-            currentPath = path;
-            selectedImages.clear();
-            selectionMode = false;
-            updateSelectionMode();
-            renderCurrentView();
-        }
-
-        function navigateToFolder(folder) {
-            currentPath.push(folder);
-            selectedImages.clear();
-            selectionMode = false;
-            updateSelectionMode();
-            renderCurrentView();
-        }
-
-        function handleThumbnailClick(index) {
-            if (selectionMode) {
-                if (selectedImages.has(index)) {
-                    selectedImages.delete(index);
-                } else {
-                    selectedImages.add(index);
-                }
-                renderImages(getCurrentFolder());
-                updateSelectionInfo();
-            } else {
-                openModal(index);
+                updateBreadcrumb();
+            } catch (error) {
+                showToast('Failed to load folders', 'error');
             }
         }
 
-        function toggleSelection() {
-            selectionMode = !selectionMode;
-            if (!selectionMode) {
-                selectedImages.clear();
-            }
-            updateSelectionMode();
-            renderImages(getCurrentFolder());
-        }
-
-        function updateSelectionMode() {
-            const grid = document.getElementById('imageGrid');
-            const selectBtn = document.getElementById('selectBtn');
-            const deleteBtn = document.getElementById('deleteBtn');
-
-            if (selectionMode) {
-                grid.classList.add('selection-mode');
-                selectBtn.textContent = '✕ Cancel';
-                deleteBtn.style.display = 'flex';
-            } else {
-                grid.classList.remove('selection-mode');
-                selectBtn.textContent = '✓ Select';
-                deleteBtn.style.display = 'none';
-            }
-
-            updateSelectionInfo();
-        }
-
-        function updateSelectionInfo() {
-            const info = document.getElementById('selectionInfo');
-            const count = document.getElementById('selectionCount');
-            
-            if (selectionMode && selectedImages.size > 0) {
-                count.textContent = selectedImages.size;
-                info.classList.add('active');
-            } else {
-                info.classList.remove('active');
-            }
-        }
-
-        function deleteSelected() {
-            if (selectedImages.size === 0) return;
-
-            if (!confirm(`Delete ${selectedImages.size} image(s)?`)) return;
-
-            const current = getCurrentFolder();
-            const toDelete = Array.from(selectedImages).sort((a, b) => b - a);
-
-            toDelete.forEach(index => {
-                const img = currentImages[index];
-                URL.revokeObjectURL(img.url);
-                delete current[img.name];
-            });
-
-            selectedImages.clear();
-            selectionMode = false;
-            updateSelectionMode();
-            renderCurrentView();
-        }
-
-        function getCurrentFolder() {
-            let current = fileStructure;
-            currentPath.forEach(folder => {
-                current = current[folder];
-            });
-            return current;
-        }
-
-        async function downloadCurrentFolder() {
-            if (currentImages.length === 0) return;
-
-            showProgress('Preparing download', 0);
+        async function loadGallery(folder) {
+            currentFolder = folder;
 
             try {
-                const zipWriter = new zip.ZipWriter(new zip.BlobWriter('application/zip'));
-                let processedCount = 0;
+                const response = await fetch(`${WORKER_URL}/api/list/${encodeURIComponent(folder)}`);
+                const images = await response.json();
 
-                for (const img of currentImages) {
-                    if (abortController && abortController.signal.aborted) {
-                        throw new Error('Download cancelled');
-                    }
+                const gallery = document.getElementById('gallery');
+                const emptyState = document.getElementById('emptyState');
+                gallery.innerHTML = '';
 
-                    await zipWriter.add(img.name, new zip.BlobReader(img.blob));
-                    processedCount++;
-                    
-                    const percent = (processedCount / currentImages.length) * 100;
-                    updateProgress(percent, processedCount, currentImages.length, 'files');
-                    updateProgressStatus(`Adding: ${img.name}`);
+                if (images.length === 0) {
+                    gallery.style.display = 'none';
+                    emptyState.style.display = 'block';
+                } else {
+                    gallery.style.display = 'grid';
+                    emptyState.style.display = 'none';
+
+                    images.forEach(img => {
+                        const item = document.createElement('div');
+                        item.className = 'gallery-item';
+                        item.dataset.key = img.key;
+                        item.innerHTML = `
+                            <input type="checkbox" class="gallery-item-checkbox" onchange="toggleImageSelection('${img.key.replace(/'/g, "\'")}')">
+                            <img src="${WORKER_URL}/api/image/${encodeURIComponent(img.key)}" alt="Photo">
+                            <button class="delete-btn" onclick="deleteFile('${img.key.replace(/'/g, "\'")}', event)">×</button>
+                        `;
+
+                        // Add click handler to image
+                        const imgElement = item.querySelector('img');
+                        imgElement.onclick = (e) => handleImageClick(img.key, e);
+
+                        gallery.appendChild(item);
+                    });
                 }
-
-                updateProgressStatus('Finalizing ZIP file...');
-                const blob = await zipWriter.close();
-
-                const folderName = currentPath.length > 0 ? currentPath[currentPath.length - 1] : 'images';
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${folderName}.zip`;
-                a.click();
-                URL.revokeObjectURL(url);
-
-                hideProgress();
             } catch (error) {
-                console.error('Download error:', error);
-                hideProgress();
-                alert(error.message);
+                showToast('Failed to load images', 'error');
             }
         }
 
-        // Modal functions with swipe support
-        function openModal(index) {
-            currentImageIndex = index;
-            const modal = document.getElementById('imageModal');
-            const img = document.getElementById('modalImage');
-            const wrapper = document.getElementById('modalImageWrapper');
-
-            img.src = currentImages[index].url;
-            document.getElementById('modalImageName').textContent = currentImages[index].name;
-            updateModalCounter();
-
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-
-            // Initialize swipe gestures
-            initModalSwipe();
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('imageModal');
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-
-            // Destroy swipe handler
-            if (modalSwipeHandler) {
-                modalSwipeHandler.destroy();
-                modalSwipeHandler = null;
-            }
-        }
-
-        function navigateImage(direction) {
-            const newIndex = currentImageIndex + direction;
-            if (newIndex >= 0 && newIndex < currentImages.length) {
-                currentImageIndex = newIndex;
-                const img = document.getElementById('modalImage');
-                const wrapper = document.getElementById('modalImageWrapper');
-
-                // Slide animation
-                wrapper.style.transform = `translateX(${-direction * 100}px)`;
-                wrapper.style.opacity = '0';
-
-                setTimeout(() => {
-                    img.src = currentImages[currentImageIndex].url;
-                    document.getElementById('modalImageName').textContent = currentImages[currentImageIndex].name;
-                    updateModalCounter();
-
-                    wrapper.style.transition = 'none';
-                    wrapper.style.transform = `translateX(${direction * 100}px)`;
-
-                    setTimeout(() => {
-                        wrapper.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
-                        wrapper.style.transform = 'translateX(0)';
-                        wrapper.style.opacity = '1';
-                    }, 50);
-                }, 150);
-            }
-        }
-
-        function updateModalCounter() {
-            document.getElementById('modalImageCount').textContent = 
-                `${currentImageIndex + 1} / ${currentImages.length}`;
-
-            document.getElementById('prevBtn').disabled = currentImageIndex === 0;
-            document.getElementById('nextBtn').disabled = currentImageIndex === currentImages.length - 1;
-        }
-
-        function initModalSwipe() {
-            const container = document.getElementById('modalImageContainer');
-            const wrapper = document.getElementById('modalImageWrapper');
-
-            modalSwipeHandler = new Hammer(container);
-            modalSwipeHandler.get('swipe').set({ direction: Hammer.DIRECTION_HORIZONTAL });
-
-            let startX = 0;
-
-            modalSwipeHandler.on('panstart', (e) => {
-                wrapper.classList.add('swiping');
-                startX = 0;
-            });
-
-            modalSwipeHandler.on('panmove', (e) => {
-                const deltaX = e.deltaX;
-                
-                // Prevent swiping beyond boundaries
-                if ((currentImageIndex === 0 && deltaX > 0) || 
-                    (currentImageIndex === currentImages.length - 1 && deltaX < 0)) {
-                    wrapper.style.transform = `translateX(${deltaX * 0.2}px)`;
-                } else {
-                    wrapper.style.transform = `translateX(${deltaX}px)`;
+        function handleImageClick(key, event) {
+            if (isSelectionMode) {
+                event.preventDefault();
+                const checkbox = event.target.parentElement.querySelector('.gallery-item-checkbox');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    toggleImageSelection(key);
                 }
-            });
-
-            modalSwipeHandler.on('panend', (e) => {
-                wrapper.classList.remove('swiping');
-                const deltaX = e.deltaX;
-                const velocity = e.velocityX;
-
-                // Determine if swipe is significant enough
-                if (Math.abs(deltaX) > 100 || Math.abs(velocity) > 0.5) {
-                    if (deltaX > 0 && currentImageIndex > 0) {
-                        navigateImage(-1);
-                    } else if (deltaX < 0 && currentImageIndex < currentImages.length - 1) {
-                        navigateImage(1);
-                    } else {
-                        wrapper.style.transform = 'translateX(0)';
-                    }
-                } else {
-                    wrapper.style.transform = 'translateX(0)';
-                }
-            });
-
-            modalSwipeHandler.on('swipeleft', () => {
-                if (currentImageIndex < currentImages.length - 1) {
-                    navigateImage(1);
-                }
-            });
-
-            modalSwipeHandler.on('swiperight', () => {
-                if (currentImageIndex > 0) {
-                    navigateImage(-1);
-                }
-            });
-        }
-
-        // Progress bar functions
-        function showProgress(title, percent) {
-            const container = document.getElementById('progressContainer');
-            const titleEl = document.getElementById('progressTitle');
-            
-            titleEl.textContent = title;
-            container.classList.add('active');
-            updateProgress(percent, 0, 0);
-            
-            abortController = new AbortController();
-        }
-
-        function updateProgress(percent, loaded, total, unit = 'bytes') {
-            const fill = document.getElementById('progressFill');
-            const percentText = document.getElementById('progressPercent');
-            const sizeText = document.getElementById('progressSize');
-
-            fill.style.width = `${Math.min(percent, 100)}%`;
-            percentText.textContent = `${Math.round(percent)}%`;
-
-            if (unit === 'bytes') {
-                const loadedMB = (loaded / (1024 * 1024)).toFixed(2);
-                const totalMB = (total / (1024 * 1024)).toFixed(2);
-                sizeText.textContent = `${loadedMB} MB / ${totalMB} MB`;
             } else {
-                sizeText.textContent = `${loaded} / ${total} ${unit}`;
+                openLightbox(`${WORKER_URL}/api/image/${encodeURIComponent(key)}`);
             }
         }
 
-        function updateProgressStatus(status) {
-            document.getElementById('progressStatus').textContent = status;
-        }
+        document.getElementById('fileInput').addEventListener('change', async function() {
+            const files = this.files;
+            if (files.length === 0) return;
 
-        function hideProgress() {
-            const container = document.getElementById('progressContainer');
-            container.classList.remove('active');
-            abortController = null;
-        }
-
-        function cancelProgress() {
-            if (abortController) {
-                abortController.abort();
-                hideProgress();
+            if (!currentFolder) {
+                showToast('Please select a folder first', 'error');
+                return;
             }
-        }
 
-        // Background upload notification
-        function showBgUploadNotification() {
-            const notification = document.getElementById('bgUploadNotification');
-            notification.classList.add('active');
+            try {
+                for (const file of files) {
+                    await fetch(`${WORKER_URL}/api/upload/${encodeURIComponent(currentFolder)}/${Date.now()}-${encodeURIComponent(file.name)}`, {
+                        method: 'PUT',
+                        body: file,
+                        headers: { 'Content-Type': file.type }
+                    });
+                }
 
-            setTimeout(() => {
-                notification.classList.remove('active');
-            }, 5000);
-        }
-
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            const modal = document.getElementById('imageModal');
-            if (!modal.classList.contains('active')) return;
-
-            if (e.key === 'ArrowLeft') {
-                navigateImage(-1);
-            } else if (e.key === 'ArrowRight') {
-                navigateImage(1);
-            } else if (e.key === 'Escape') {
-                closeModal();
+                showToast(`✓ Uploaded ${files.length} photo(s)`, 'success');
+                loadGallery(currentFolder);
+                loadStorageStats();
+                this.value = '';
+            } catch (error) {
+                showToast('Upload failed', 'error');
             }
         });
 
-        // Initialize
-        updateEmptyState();
+        document.getElementById('folderInput').addEventListener('change', async function() {
+            const files = this.files;
+            if (files.length === 0) return;
+
+            const firstPath = files[0].webkitRelativePath;
+            const folderName = firstPath.split('/')[0];
+            const createNew = confirm(`Upload ${files.length} files from "${folderName}".\n\nOK = Create new folder\nCancel = Use current folder`);
+
+            let targetFolder;
+            if (createNew) {
+                const fullPath = currentFolder ? `${currentFolder}/${folderName}` : folderName;
+                await fetch(`${WORKER_URL}/api/create-folder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folderPath: fullPath })
+                });
+                targetFolder = fullPath;
+                currentPath.push(folderName);
+                currentFolder = currentPath.join('/');
+                await loadFolders(currentFolder.split('/').slice(0, -1).join('/'));
+            } else {
+                if (!currentFolder) { showToast('Select a folder first', 'error'); return; }
+                targetFolder = currentFolder;
+            }
+
+            try {
+                let count = 0;
+                for (const file of files) {
+                    const relativePath = file.webkitRelativePath.split('/').slice(1).join('/');
+                    await fetch(`${WORKER_URL}/api/upload/${encodeURIComponent(targetFolder)}/${Date.now()}-${count++}-${encodeURIComponent(relativePath)}`, {
+                        method: 'PUT',
+                        body: file,
+                        headers: { 'Content-Type': file.type }
+                    });
+                }
+                showToast(`✓ Uploaded ${count} files!`, 'success');
+                loadGallery(targetFolder);
+                loadStorageStats();
+                this.value = '';
+            } catch (error) {
+                showToast('Upload failed', 'error');
+            }
+        });
+
+        async function deleteFile(key, event) {
+            event.stopPropagation();
+
+            if (!confirm('Delete this photo?')) return;
+
+            try {
+                await fetch(`${WORKER_URL}/api/delete-file/${encodeURIComponent(key)}`, {
+                    method: 'DELETE'
+                });
+
+                showToast('✓ Photo deleted', 'success');
+                loadGallery(currentFolder);
+                loadStorageStats();
+            } catch (error) {
+                showToast('Failed to delete', 'error');
+            }
+        }
+
+        async function showCreateFolder() {
+            const folderName = prompt('New folder name:');
+            if (!folderName) return;
+
+            const folderPath = currentFolder ? `${currentFolder}/${folderName}` : folderName;
+
+            try {
+                await fetch(`${WORKER_URL}/api/create-folder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folderPath })
+                });
+                showToast('✓ Folder created', 'success');
+                loadFolders(currentFolder);
+            } catch (error) {
+                showToast('Failed to create folder', 'error');
+            }
+        }
+
+        async function showRenameFolder() {
+            if (!currentFolder) { showToast('Select a folder first', 'error'); return; }
+
+            const currentName = currentPath[currentPath.length - 1];
+            const newName = prompt(`Rename "${currentName}" to:`);
+            if (!newName) return;
+
+            const parentPath = currentPath.slice(0, -1).join('/');
+            const newPath = parentPath ? `${parentPath}/${newName}` : newName;
+
+            try {
+                await fetch(`${WORKER_URL}/api/rename-folder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ oldPath: currentFolder, newPath })
+                });
+                showToast('✓ Folder renamed', 'success');
+                currentPath[currentPath.length - 1] = newName;
+                currentFolder = currentPath.join('/');
+                loadFolders(parentPath);
+                loadGallery(currentFolder);
+            } catch (error) {
+                showToast('Failed to rename', 'error');
+            }
+        }
+
+        async function showDeleteFolder() {
+            if (!currentFolder) { showToast('Select a folder first', 'error'); return; }
+            if (!confirm(`Delete "${currentPath[currentPath.length - 1]}" and all contents?`)) return;
+
+            try {
+                await fetch(`${WORKER_URL}/api/delete-folder`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folderPath: currentFolder })
+                });
+                showToast('✓ Folder deleted', 'success');
+                currentPath.pop();
+                currentFolder = currentPath.join('/');
+                loadFolders(currentFolder);
+                loadStorageStats();
+            } catch (error) {
+                showToast('Failed to delete folder', 'error');
+            }
+        }
+
+        function openLightbox(imgSrc) {
+            document.getElementById('lightbox').classList.add('active');
+            document.getElementById('lightbox-img').src = imgSrc;
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function toggleSelectionMode() {
+            isSelectionMode = !isSelectionMode;
+            const gallery = document.getElementById('gallery');
+            const selectBtn = document.getElementById('selectBtn');
+
+            if (isSelectionMode) {
+                gallery.classList.add('selection-mode');
+                selectBtn.innerHTML = '<span>✖️</span> Cancel';
+            } else {
+                gallery.classList.remove('selection-mode');
+                selectBtn.innerHTML = '<span>☑️</span> Select';
+                selectedImages = [];
+                document.querySelectorAll('.gallery-item').forEach(item => {
+                    item.classList.remove('selected');
+                    const checkbox = item.querySelector('.gallery-item-checkbox');
+                    if (checkbox) checkbox.checked = false;
+                });
+                updateBulkActionBar();
+            }
+        }
+
+        function toggleImageSelection(key) {
+            const item = document.querySelector(`.gallery-item[data-key="${key}"]`);
+            if (!item) return;
+
+            const checkbox = item.querySelector('.gallery-item-checkbox');
+
+            if (checkbox.checked) {
+                selectedImages.push(key);
+                item.classList.add('selected');
+            } else {
+                selectedImages = selectedImages.filter(k => k !== key);
+                item.classList.remove('selected');
+            }
+
+            updateBulkActionBar();
+        }
+
+        function updateBulkActionBar() {
+            const bar = document.getElementById('bulkActionBar');
+            const count = document.getElementById('selectedCount');
+
+            if (selectedImages.length > 0) {
+                bar.classList.add('active');
+                count.textContent = `${selectedImages.length} selected`;
+            } else {
+                bar.classList.remove('active');
+            }
+        }
+
+        function exitSelectionMode() {
+            if (isSelectionMode) {
+                toggleSelectionMode();
+            }
+        }
+
+        function downloadSelectedAsZip() {
+            if (selectedImages.length === 0) return;
+
+            pendingZipImages = [...selectedImages];
+            document.getElementById('passwordZipModal').classList.add('active');
+            document.getElementById('zipPassword').focus();
+        }
+
+        function cancelZipPassword() {
+            document.getElementById('passwordZipModal').classList.remove('active');
+            document.getElementById('zipPassword').value = '';
+            pendingZipImages = [];
+        }
+
+        async function createZipWithPassword() {
+            const password = document.getElementById('zipPassword').value.trim();
+
+            document.getElementById('passwordZipModal').classList.remove('active');
+            document.getElementById('zipPassword').value = '';
+
+            if (pendingZipImages.length === 0) return;
+
+            showToast(`Creating ZIP with ${pendingZipImages.length} images...`, 'success');
+
+            try {
+                const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"), {
+                    password: password || undefined,
+                    encryptionStrength: password ? 3 : undefined,
+                });
+
+                for (let i = 0; i < pendingZipImages.length; i++) {
+                    const key = pendingZipImages[i];
+                    const url = `${WORKER_URL}/api/image/${encodeURIComponent(key)}`;
+                    const filename = key.split('/').pop();
+
+                    try {
+                        const response = await fetch(url);
+                        const blob = await response.blob();
+
+                        await zipWriter.add(filename, new zip.BlobReader(blob), {
+                            level: 0
+                        });
+
+                        if ((i + 1) % 5 === 0 || i === pendingZipImages.length - 1) {
+                            showToast(`Processing ${i + 1}/${pendingZipImages.length}...`, 'success');
+                        }
+                    } catch (error) {
+                        console.error(`Failed to add ${filename}:`, error);
+                    }
+                }
+
+                const zipBlob = await zipWriter.close();
+
+                const zipFilename = `${currentFolder.replace(/\//g, '_') || 'gallery'}_${new Date().getTime()}.zip`;
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(zipBlob);
+                link.download = zipFilename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+
+                const protectedMsg = password ? '🔒 password-protected' : '';
+                showToast(`✓ Downloaded ${pendingZipImages.length} images as ${protectedMsg} ZIP`, 'success');
+
+                pendingZipImages = [];
+                exitSelectionMode();
+            } catch (error) {
+                console.error('ZIP creation failed:', error);
+                showToast('Failed to create ZIP file', 'error');
+            }
+        }
+
+        async function downloadFolderAsZip() {
+            if (!currentFolder) {
+                showToast('Please select a folder first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${WORKER_URL}/api/list/${encodeURIComponent(currentFolder)}`);
+                const images = await response.json();
+
+                if (images.length === 0) {
+                    showToast('Folder is empty', 'error');
+                    return;
+                }
+
+                pendingZipImages = images.map(img => img.key);
+                document.getElementById('passwordZipModal').classList.add('active');
+                document.getElementById('zipPassword').focus();
+            } catch (error) {
+                showToast('Failed to load folder', 'error');
+            }
+        }
+
+        async function deleteSelected() {
+            if (selectedImages.length === 0) return;
+
+            if (!confirm(`Delete ${selectedImages.length} selected images?`)) return;
+
+            try {
+                for (const key of selectedImages) {
+                    await fetch(`${WORKER_URL}/api/delete-file/${encodeURIComponent(key)}`, {
+                        method: 'DELETE'
+                    });
+                }
+
+                showToast(`✓ Deleted ${selectedImages.length} images`, 'success');
+                exitSelectionMode();
+                loadGallery(currentFolder);
+                loadStorageStats();
+            } catch (error) {
+                showToast('Delete failed', 'error');
+            }
+        }
+
+        async function loadStorageStats() {
+            try {
+                const response = await fetch(`${WORKER_URL}/api/storage-stats`);
+                const stats = await response.json();
+
+                const usedMB = parseFloat(stats.totalSizeMB);
+                const usedGB = parseFloat(stats.totalSizeGB);
+                const freeGB = 10;
+                const percentUsed = (usedGB / freeGB * 100).toFixed(1);
+
+                document.getElementById('storageInfo').style.display = 'flex';
+
+                if (usedGB >= 1) {
+                    document.getElementById('storageUsed').textContent = `${usedGB} GB`;
+                } else {
+                    document.getElementById('storageUsed').textContent = `${usedMB} MB`;
+                }
+
+                document.getElementById('storagePercent').textContent = `${percentUsed}%`;
+                document.getElementById('storageBarFill').style.width = `${Math.min(percentUsed, 100)}%`;
+
+                const barFill = document.getElementById('storageBarFill');
+                if (percentUsed >= 90) {
+                    barFill.style.background = 'var(--destructive)';
+                } else if (percentUsed >= 70) {
+                    barFill.style.background = 'var(--primary-color)';
+                } else {
+                    barFill.style.background = 'var(--success)';
+                }
+            } catch (error) {
+                console.error('Failed to load storage stats:', error);
+            }
+        }
+
+        loadFolders();
+        loadStorageStats();
     </script>
 </body>
 </html>
