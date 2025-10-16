@@ -1635,5 +1635,22 @@
         loadFolders('');
         loadStorageStats();
     </script>
+
+<script>
+// 페이지 로드 시 초기화
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded, initializing gallery...');
+
+    // 초기 폴더 목록 로드
+    loadFolders('');
+
+    // 스토리지 정보 로드 (있다면)
+    if (typeof updateStorageInfo === 'function') {
+        updateStorageInfo();
+    }
+
+    console.log('Initialization complete');
+});
+</script>
 </body>
 </html>
