@@ -1,4 +1,4 @@
-#Miyabi Gallery
+Miyabi Gallery
 
 ✨ 주요 특징
 
