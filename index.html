@@ -713,13 +713,13 @@
         <div style="background: var(--card-background); padding: 40px; border-radius: 20px; max-width: 400px; width: 90%; text-align: center;">
             <h2 style="margin-bottom: 20px; color: var(--text-primary);">🔒 Gallery Access</h2>
             <p style="color: var(--text-secondary); margin-bottom: 30px;">Enter password to continue</p>
-            <input type="password" id="passwordInput" placeholder="Enter password" style="width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 12px; font-size: 16px; margin-bottom: 20px; background: var(--background); color: var(--text-primary);" autofocus>
+            <input type="password" id="passwordInput" placeholder="Enter dot password" style="width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 12px; font-size: 16px; margin-bottom: 20px; background: var(--background); color: var(--text-primary);" autofocus>
             <p id="errorMsg" style="color: var(--destructive); margin-top: 15px; display: none;">Incorrect password</p>
         </div>
     </div>
 
     <script>
-        const PASSWORD_HASH = 'd025e49b7a3f5b5ff38e5f62c5478b7e0de9a59d8a631032e543df224f1ac2023d2cd8ac51dcd061730160658f59518c489e705fbb144bd5271c0b9b84870f89';
+        const PASSWORD_HASH = '3fb97d67d0041d9e3f03b9b6d89d860b1e07884f674336ebad64a8fd4288a4865655f0e68cc2acc978ed94d71d87672452d2850ddc90bccc0edaecb3bf135126';
         const AUTH_DURATION = 60 * 60 * 1000;
 
         async function hashPassword(password) {
