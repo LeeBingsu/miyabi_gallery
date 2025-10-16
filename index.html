@@ -898,9 +898,10 @@
             breadcrumb.innerHTML = '';
 
             const root = document.createElement('span');
-            root.className = 'breadcrumb-item';
+            root.className = 'breadcrumb-item current';
             root.textContent = '🏠 Home';
-            root.onclick = () => navigateToPath(-1);
+            root.style.cursor = 'default';
+            // Disabled: root.onclick = () => navigateToPath(-1);
             breadcrumb.appendChild(root);
 
             currentPath.forEach((segment, index) => {
@@ -912,8 +913,14 @@
                 const item = document.createElement('span');
                 item.className = index === currentPath.length - 1 ? 'breadcrumb-item current' : 'breadcrumb-item';
                 item.textContent = segment;
+
                 if (index < currentPath.length - 1) {
-                    item.onclick = () => navigateToPath(index);
+                    // Disable clicking parent folders
+                    item.style.cursor = 'default';
+                    item.style.color = 'var(--text-secondary)';
+                } else {
+                    // Current folder is clickable to refresh
+                    item.onclick = () => loadGallery(currentFolder);
                 }
                 breadcrumb.appendChild(item);
             });
@@ -1084,10 +1091,28 @@
         }
 
         async function showCreateFolder() {
-            const folderName = prompt('New folder name:');
-            if (!folderName) return;
+            let folderName = prompt('New folder name:');
+            if (!folderName || folderName.trim() === '') {
+                showToast('Please enter a valid folder name', 'error');
+                return;
+            }
+            folderName = folderName.trim();
 
             const folderPath = currentFolder ? `${currentFolder}/${folderName}` : folderName;
+
+            try {
+                await fetch(`${WORKER_URL}/api/create-folder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folderPath })
+                });
+
+                showToast('✓ Folder created', 'success');
+                loadFolders(currentFolder);
+            } catch (error) {
+                showToast('Failed to create folder', 'error');
+            }
+        }/${folderName}` : folderName;
 
             try {
                 await fetch(`${WORKER_URL}/api/create-folder`, {
