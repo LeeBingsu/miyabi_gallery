@@ -1024,7 +1024,7 @@
         let isSelectionMode = false;
         let pendingZipImages = [];
 
-        function navigateToFolder(folderName) {
+        async function navigateToFolder(folderName) {
     currentPath.push(folderName);
     currentFolder = currentPath.join('/');
     loadFolders(currentFolder);
@@ -1288,7 +1288,7 @@
             }
         }
 
-        async function showCreateFolder() {
+        async async function showCreateFolder() {
     let folderName = prompt('New folder name:');
     if (!folderName || folderName.trim() === '') return;
     folderName = folderName.trim();
