@@ -932,7 +932,52 @@
             toast.className = `toast ${type} show`;
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
+        function navigateToFolder(folderName) {
+    currentPath.push(folderName);
+    currentFolder = currentPath.join('/');
+    loadFolders(currentFolder);
+    loadGallery(currentFolder);
+}
+
+function navigateToPath(index) {
+    if (index === -1) {
+        currentPath = [];
+        currentFolder = '';
+        loadFolders('');
+        document.getElementById('gallery').innerHTML = '';
+    } else {
+        currentPath = currentPath.slice(0, index + 1);
+        currentFolder = currentPath.join('/');
+        loadFolders(currentFolder);
+        loadGallery(currentFolder);
+    }
+}
+
+function updateBreadcrumb() {
+    const breadcrumb = document.getElementById('breadcrumb');
+    breadcrumb.innerHTML = '';
+    
+    const root = document.createElement('span');
+    root.className = 'breadcrumb-item';
+    root.textContent = '🏠 Home';
+    root.onclick = () => navigateToPath(-1);
+    breadcrumb.appendChild(root);
+    
+    currentPath.forEach((segment, index) => {
+        const separator = document.createElement('span');
+        separator.className = 'breadcrumb-separator';
+        separator.textContent = '/';
+        breadcrumb.appendChild(separator);
         
+        const item = document.createElement('span');
+        item.className = index === currentPath.length - 1 ? 'breadcrumb-item current' : 'breadcrumb-item';
+        item.textContent = segment;
+        if (index < currentPath.length - 1) {
+            item.onclick = () => navigateToPath(index);
+        }
+        breadcrumb.appendChild(item);
+    });
+}
         loadFolders();
 
         // Folder upload handler
