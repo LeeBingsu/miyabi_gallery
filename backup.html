@@ -1430,9 +1430,9 @@
             viewerMediaKeys = items.map(i => i.dataset.key); viewerCurrentIndex = 0;
             const v = document.getElementById('fullscreenViewer');
             v.classList.add('active'); showViewerMedia(0);
-            v.addEventListener('touchstart', handleViewerTouchStart, { passive: false });
-            v.addEventListener('touchmove', handleViewerTouchMove, { passive: false });
-            v.addEventListener('touchend', handleViewerTouchEnd, { passive: false });
+            //v.addEventListener('touchstart', handleViewerTouchStart, { passive: false });
+            //v.addEventListener('touchmove', handleViewerTouchMove, { passive: false });
+            //v.addEventListener('touchend', handleViewerTouchEnd, { passive: false });
         }
 
         function closeViewerMode() {
@@ -1466,16 +1466,17 @@
         }
         function handleViewerTouchStart(e) { return; }
         function handleViewerTouchMove(e) { return; }
-        function handleViewerTouchEnd(e) {
-            if (e.target.tagName === 'VIDEO' || e.target.tagName === 'BUTTON') return;
-            if (viewerIsSwiping && viewerTouchStartX) {
-                const dx = viewerTouchStartX - e.changedTouches[0].clientX;
-                if (Math.abs(dx) > 50) { dx > 0 ? nextViewerMedia() : prevViewerMedia(); }
-            } else if (!viewerIsSwiping && e.target.tagName !== 'BUTTON') {
-                const x = e.changedTouches[0].clientX, w = window.innerWidth;
-                x < w / 3 ? prevViewerMedia() : x > w * 2 / 3 ? nextViewerMedia() : nextViewerMedia();
-            }
-            viewerTouchStartX = 0; viewerIsSwiping = false;
+        function handleViewerTouchEnd(e) { return;
+		//function handleViewerTouchEnd(e) {
+        //    if (e.target.tagName === 'VIDEO' || e.target.tagName === 'BUTTON') return;
+        //    if (viewerIsSwiping && viewerTouchStartX) {
+        //        const dx = viewerTouchStartX - e.changedTouches[0].clientX;
+         //       if (Math.abs(dx) > 50) { dx > 0 ? nextViewerMedia() : prevViewerMedia(); }
+        //    } else if (!viewerIsSwiping && e.target.tagName !== 'BUTTON') {
+         //       const x = e.changedTouches[0].clientX, w = window.innerWidth;
+         //       x < w / 3 ? prevViewerMedia() : x > w * 2 / 3 ? nextViewerMedia() : nextViewerMedia();
+        //    }
+        //    viewerTouchStartX = 0; viewerIsSwiping = false;
         }
 
         function closeLightbox(){document.getElementById("lightbox").classList.remove("active"),currentMediaIndex=0,allMediaKeys=[]}
