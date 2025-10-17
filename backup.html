@@ -803,6 +803,16 @@
         .viewer-arrow:hover { background: rgba(0, 0, 0, 0.9); transform: translateY(-50%) scale(1.1) !important; }
         .viewer-arrow.left { left: 20px !important; }
         .viewer-arrow.right { right: 20px !important; }
+		#viewerContent {
+    pointer-events: none !important;
+}
+
+#viewerContent img,
+#viewerContent video {
+    pointer-events: auto;
+    cursor: default;
+}
+
 
     </style>
 </head>
