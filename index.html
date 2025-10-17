@@ -844,7 +844,7 @@
         async function checkPassword() {
             const input = document.getElementById('passwordInput').value;
 
-            if (input.length >= 1) {
+            if (input) {
                 const hash = await hashPassword(input);
 
                 if (hash === PASSWORD_HASH) {
