@@ -737,7 +737,6 @@
             align-items: center !important;
             justify-content: center !important;
             overflow: hidden;
-            background: transparent;
         }
 
         #lightbox-content img {
@@ -746,7 +745,6 @@
             width: auto !important;
             height: auto !important;
             object-fit: contain !important;
-            object-position: center !important;
             display: block !important;
             margin: 0 auto !important;
         }
@@ -754,29 +752,45 @@
         #lightbox-content video {
             max-width: 100% !important;
             max-height: calc(100vh - 150px) !important;
-            width: auto !important;
-            height: auto !important;
         }
 
-        /* 썸네일 갤러리 수정 */
-        .thumbnail-gallery {
-            height: 70px !important;
-            padding: 5px !important;
-        }
-
+        /* 썸네일 수정 */
+        .thumbnail-gallery { height: 70px !important; }
         .thumbnail-item {
             min-width: 60px !important;
             width: 60px !important;
             height: 60px !important;
-            max-height: 60px !important;
             flex-shrink: 0 !important;
         }
-
         .thumbnail-item img {
             width: 100% !important;
             height: 100% !important;
             object-fit: cover !important;
         }
+
+        /* 뷰어 화살표 */
+        .viewer-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 10001;
+        }
+        .viewer-arrow:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .viewer-arrow.left { left: 20px; }
+        .viewer-arrow.right { right: 20px; }
 
     </style>
 </head>
@@ -817,7 +831,7 @@
                     document.getElementById('passwordModal').style.display = 'none';
                 } else {
                     document.getElementById('errorMsg').style.display = 'block';
-                    // 
+                    setTimeout(() => {
                         document.getElementById('errorMsg').style.display = 'none';
                     }, 2000);
                 }
@@ -893,7 +907,6 @@
             align-items: center !important;
             justify-content: center !important;
             overflow: hidden;
-            background: transparent;
         }
 
         #lightbox-content img {
@@ -902,7 +915,6 @@
             width: auto !important;
             height: auto !important;
             object-fit: contain !important;
-            object-position: center !important;
             display: block !important;
             margin: 0 auto !important;
         }
@@ -910,29 +922,45 @@
         #lightbox-content video {
             max-width: 100% !important;
             max-height: calc(100vh - 150px) !important;
-            width: auto !important;
-            height: auto !important;
         }
 
-        /* 썸네일 갤러리 수정 */
-        .thumbnail-gallery {
-            height: 70px !important;
-            padding: 5px !important;
-        }
-
+        /* 썸네일 수정 */
+        .thumbnail-gallery { height: 70px !important; }
         .thumbnail-item {
             min-width: 60px !important;
             width: 60px !important;
             height: 60px !important;
-            max-height: 60px !important;
             flex-shrink: 0 !important;
         }
-
         .thumbnail-item img {
             width: 100% !important;
             height: 100% !important;
             object-fit: cover !important;
         }
+
+        /* 뷰어 화살표 */
+        .viewer-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 10001;
+        }
+        .viewer-arrow:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .viewer-arrow.left { left: 20px; }
+        .viewer-arrow.right { right: 20px; }
 
     </style>
 
@@ -993,6 +1021,8 @@
     <div class="fullscreen-viewer" id="fullscreenViewer">
         <div class="viewer-counter" id="viewerCounter"></div>
         <button class="viewer-close" onclick="closeViewerMode()">×</button>
+        <div class="viewer-arrow left" onclick="prevViewerMedia()">‹</div>
+        <div class="viewer-arrow right" onclick="nextViewerMedia()">›</div>
         <div id="viewerContent"></div>
     </div>
     <div class="toast" id="toast"></div>
@@ -1389,19 +1419,18 @@
 
         function nextViewerMedia() { showViewerMedia((viewerCurrentIndex + 1) % viewerMediaKeys.length); }
         function prevViewerMedia() { showViewerMedia(viewerCurrentIndex - 1 < 0 ? viewerMediaKeys.length - 1 : viewerCurrentIndex - 1); }
-        function handleViewerTouchStart(e) {
-            // 스와이프 기능 제거됨
-            return;
-        }
-
-        function handleViewerTouchMove(e) {
-            // 스와이프 기능 제거됨
-            return;
-        }
-
+        function handleViewerTouchStart(e) { return; }
+        function handleViewerTouchMove(e) { return; }
         function handleViewerTouchEnd(e) {
-            // 스와이프 기능 제거됨
-            return;
+            if (e.target.tagName === 'VIDEO' || e.target.tagName === 'BUTTON') return;
+            if (viewerIsSwiping && viewerTouchStartX) {
+                const dx = viewerTouchStartX - e.changedTouches[0].clientX;
+                if (Math.abs(dx) > 50) { dx > 0 ? nextViewerMedia() : prevViewerMedia(); }
+            } else if (!viewerIsSwiping && e.target.tagName !== 'BUTTON') {
+                const x = e.changedTouches[0].clientX, w = window.innerWidth;
+                x < w / 3 ? prevViewerMedia() : x > w * 2 / 3 ? nextViewerMedia() : nextViewerMedia();
+            }
+            viewerTouchStartX = 0; viewerIsSwiping = false;
         }
 
         function closeLightbox(){document.getElementById("lightbox").classList.remove("active"),currentMediaIndex=0,allMediaKeys=[]}
