@@ -729,14 +729,14 @@
         .gallery-item.loading{opacity:.6;pointer-events:none}
         .gallery-item-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:1;color:#fff;font-size:13px;font-weight:600}
 
-        /* 이미지 안전 표시 */
+        /* ===== Lightbox 이미지 완벽 수정 ===== */
         #lightbox-content {
             width: 100%;
-            height: calc(100vh - 150px);
+            height: calc(100vh - 150px) !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            overflow: hidden;
+            overflow: hidden !important;
         }
 
         #lightbox-content img {
@@ -745,17 +745,18 @@
             width: auto !important;
             height: auto !important;
             object-fit: contain !important;
+            object-position: center !important;
             display: block !important;
-            margin: 0 auto !important;
         }
 
         #lightbox-content video {
             max-width: 100% !important;
             max-height: calc(100vh - 150px) !important;
+            object-fit: contain !important;
         }
 
-        /* 썸네일 수정 */
-        .thumbnail-gallery { height: 70px !important; }
+        /* ===== 썸네일 수정 ===== */
+        .thumbnail-gallery { height: 70px !important; padding: 5px !important; }
         .thumbnail-item {
             min-width: 60px !important;
             width: 60px !important;
@@ -768,14 +769,54 @@
             object-fit: cover !important;
         }
 
-        /* 뷰어 화살표 */
-        .viewer-arrow {
+        /* ===== 뷰어 모드 완벽 수정 ===== */
+        .fullscreen-viewer {
             position: fixed;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            z-index: 9999;
+            pointer-events: none !important; /* 배경 클릭 차단 */
+        }
+        .fullscreen-viewer.active { display: block; }
+
+        .fullscreen-viewer > * {
+            pointer-events: auto !important;
+        }
+
+        #viewerContent {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none !important;
+        }
+
+        #viewerContent img,
+        #viewerContent video {
+            pointer-events: auto;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+            object-position: center !important;
+        }
+
+        .viewer-arrow {
+            position: fixed !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
             width: 60px;
             height: 60px;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -783,14 +824,16 @@
             color: white;
             font-size: 28px;
             cursor: pointer;
-            z-index: 10001;
+            z-index: 10002 !important;
+            pointer-events: auto !important;
+            transition: 0.3s;
         }
         .viewer-arrow:hover {
-            background: rgba(0, 0, 0, 0.8);
-            transform: translateY(-50%) scale(1.1);
+            background: rgba(0, 0, 0, 0.9);
+            transform: translateY(-50%) scale(1.1) !important;
         }
-        .viewer-arrow.left { left: 20px; }
-        .viewer-arrow.right { right: 20px; }
+        .viewer-arrow.left { left: 20px !important; }
+        .viewer-arrow.right { right: 20px !important; }
 
     </style>
 </head>
@@ -899,14 +942,14 @@
             font-family: "BBH Sans Bartle", sans-serif;
 		}
 	    
-        /* 이미지 안전 표시 */
+        /* ===== Lightbox 이미지 완벽 수정 ===== */
         #lightbox-content {
             width: 100%;
-            height: calc(100vh - 150px);
+            height: calc(100vh - 150px) !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            overflow: hidden;
+            overflow: hidden !important;
         }
 
         #lightbox-content img {
@@ -915,17 +958,18 @@
             width: auto !important;
             height: auto !important;
             object-fit: contain !important;
+            object-position: center !important;
             display: block !important;
-            margin: 0 auto !important;
         }
 
         #lightbox-content video {
             max-width: 100% !important;
             max-height: calc(100vh - 150px) !important;
+            object-fit: contain !important;
         }
 
-        /* 썸네일 수정 */
-        .thumbnail-gallery { height: 70px !important; }
+        /* ===== 썸네일 수정 ===== */
+        .thumbnail-gallery { height: 70px !important; padding: 5px !important; }
         .thumbnail-item {
             min-width: 60px !important;
             width: 60px !important;
@@ -938,14 +982,54 @@
             object-fit: cover !important;
         }
 
-        /* 뷰어 화살표 */
-        .viewer-arrow {
+        /* ===== 뷰어 모드 완벽 수정 ===== */
+        .fullscreen-viewer {
             position: fixed;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            z-index: 9999;
+            pointer-events: none !important; /* 배경 클릭 차단 */
+        }
+        .fullscreen-viewer.active { display: block; }
+
+        .fullscreen-viewer > * {
+            pointer-events: auto !important;
+        }
+
+        #viewerContent {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none !important;
+        }
+
+        #viewerContent img,
+        #viewerContent video {
+            pointer-events: auto;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+            object-position: center !important;
+        }
+
+        .viewer-arrow {
+            position: fixed !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
             width: 60px;
             height: 60px;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -953,14 +1037,16 @@
             color: white;
             font-size: 28px;
             cursor: pointer;
-            z-index: 10001;
+            z-index: 10002 !important;
+            pointer-events: auto !important;
+            transition: 0.3s;
         }
         .viewer-arrow:hover {
-            background: rgba(0, 0, 0, 0.8);
-            transform: translateY(-50%) scale(1.1);
+            background: rgba(0, 0, 0, 0.9);
+            transform: translateY(-50%) scale(1.1) !important;
         }
-        .viewer-arrow.left { left: 20px; }
-        .viewer-arrow.right { right: 20px; }
+        .viewer-arrow.left { left: 20px !important; }
+        .viewer-arrow.right { right: 20px !important; }
 
     </style>
 
@@ -1021,8 +1107,8 @@
     <div class="fullscreen-viewer" id="fullscreenViewer">
         <div class="viewer-counter" id="viewerCounter"></div>
         <button class="viewer-close" onclick="closeViewerMode()">×</button>
-        <div class="viewer-arrow left" onclick="prevViewerMedia()">‹</div>
-        <div class="viewer-arrow right" onclick="nextViewerMedia()">›</div>
+        <div class="viewer-arrow left" onclick="event.stopPropagation(); event.preventDefault(); prevViewerMedia();">‹</div>
+        <div class="viewer-arrow right" onclick="event.stopPropagation(); event.preventDefault(); nextViewerMedia();">›</div>
         <div id="viewerContent"></div>
     </div>
     <div class="toast" id="toast"></div>
