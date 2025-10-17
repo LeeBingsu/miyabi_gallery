@@ -818,7 +818,7 @@
                 <label class="file-label" for="fileInput">
                     <span>📷</span> Upload Photos
                 </label>
-                <input type="file" id="fileInput" multiple accept="image/*">
+                <input type="file" id="fileInput" multiple accept="image/*,video/mp4,video/webm,video/ogg,video/mov,video/avi,video/*">
 
                 <label class="file-label" for="folderInput" style="background: var(--secondary-color);">
                     <span>📂</span> Upload Folder
@@ -852,7 +852,7 @@
 
     <div class="lightbox" id="lightbox" onclick="closeLightbox()">
         <button class="close">×</button>
-        <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()">
+        <div id="lightbox-content"></div>
     </div>
 
     <div class="toast" id="toast"></div>
@@ -866,6 +866,58 @@
         let isSelectionMode = false;
         let pendingZipImages = [];
 
+        // 미디어 네비게이션 변수
+        let currentMediaIndex = 0;
+        let allMediaKeys = [];
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let touchStartY = 0;
+        let touchEndY = 0;
+        let isSwiping = false;
+
+        // 페이지 이탈 경고 (모든 플랫폼)
+        window.addEventListener('pagehide', function (e) {
+            // iOS Safari용
+        });
+
+        window.addEventListener('beforeunload', function (e) {
+            // Windows/Android용
+            e.preventDefault();
+            e.returnValue = '변경사항이 손실될 수 있습니다. 정말 페이지를 떠나시겠습니까?';
+            return '변경사항이 손실될 수 있습니다. 정말 페이지를 떠나시겠습니까?';
+        });
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden') {
+                // 백업용
+            }
+        });
+
+        // 뒤로가기 기능 (모든 플랫폼)
+        window.addEventListener('popstate', function(event) {
+            if (currentPath.length > 0) {
+                navigateToPath(currentPath.length - 2);
+            }
+        });
+
+        function initHistory() {
+            history.pushState({ path: currentPath.slice() }, '', '');
+        }
+
+        // 키보드 네비게이션 (Windows 포함)
+        document.addEventListener('keydown', function(e) {
+            const lightbox = document.getElementById('lightbox');
+            if (lightbox.classList.contains('active')) {
+                if (e.key === 'ArrowLeft') {
+                    navigateMedia(-1);
+                } else if (e.key === 'ArrowRight') {
+                    navigateMedia(1);
+                } else if (e.key === 'Escape') {
+                    closeLightbox();
+                }
+            }
+        });
+
         function navigateToFolder(folderName) {
             if (currentPath[currentPath.length - 1] === folderName) {
                 return;
@@ -873,6 +925,7 @@
 
             currentPath.push(folderName);
             currentFolder = currentPath.join('/');
+            history.pushState({ path: currentPath.slice() }, '', '');
             loadFolders(currentFolder);
             loadGallery(currentFolder);
         }
@@ -989,7 +1042,7 @@
                     toggleImageSelection(key);
                 }
             } else {
-                openLightbox(`${WORKER_URL}/api/image/${encodeURIComponent(key)}`);
+                openLightbox(`${WORKER_URL}/api/image/${encodeURIComponent(key)}`, key);
             }
         }
 
@@ -1147,13 +1200,126 @@
             }
         }
 
-        function openLightbox(imgSrc) {
-            document.getElementById('lightbox').classList.add('active');
-            document.getElementById('lightbox-img').src = imgSrc;
+        function openLightbox(imgSrc, mediaKey = null) {
+            const lightbox = document.getElementById('lightbox');
+            const content = document.getElementById('lightbox-content');
+
+            // 현재 갤러리의 모든 미디어 수집
+            const galleryItems = Array.from(document.querySelectorAll('.gallery-item'));
+            allMediaKeys = galleryItems.map(item => item.dataset.key);
+
+            if (mediaKey) {
+                currentMediaIndex = allMediaKeys.indexOf(mediaKey);
+            }
+
+            // 동영상인지 이미지인지 확인
+            const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
+            const isVideo = videoExtensions.some(ext => imgSrc.toLowerCase().endsWith(ext));
+
+            if (isVideo) {
+                content.innerHTML = `<video src="${imgSrc}" controls autoplay loop style="max-width: 90%; max-height: 90vh; object-fit: contain; border-radius: var(--radius-large);"></video>`;
+            } else {
+                content.innerHTML = `<img src="${imgSrc}" alt="" style="max-width: 90%; max-height: 90vh; border-radius: var(--radius-large);">`;
+            }
+
+            lightbox.classList.add('active');
+
+            // 터치 이벤트 (Android, iOS, Windows 터치스크린)
+            setTimeout(() => {
+                lightbox.addEventListener('touchstart', handleLightboxTouchStart, { passive: false });
+                lightbox.addEventListener('touchmove', handleLightboxTouchMove, { passive: false });
+                lightbox.addEventListener('touchend', handleLightboxTouchEnd, { passive: false });
+            }, 100);
+        }
+
+        // 터치 핸들러 (모든 터치 기기)
+        function handleLightboxTouchStart(e) {
+            if (e.target.tagName === 'VIDEO' || e.target.tagName === 'BUTTON') return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            isSwiping = false;
+        }
+
+        function handleLightboxTouchMove(e) {
+            if (!touchStartX || !touchStartY) return;
+            if (e.target.tagName === 'VIDEO' || e.target.tagName === 'BUTTON') return;
+
+            touchEndX = e.touches[0].clientX;
+            touchEndY = e.touches[0].clientY;
+
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+                isSwiping = true;
+                e.preventDefault();
+            }
+        }
+
+        function handleLightboxTouchEnd(e) {
+            if (!isSwiping || !touchStartX || allMediaKeys.length === 0) {
+                touchStartX = 0;
+                touchStartY = 0;
+                touchEndX = 0;
+                touchEndY = 0;
+                return;
+            }
+
+            const swipeThreshold = 50;
+            const diffX = touchStartX - touchEndX;
+
+            if (Math.abs(diffX) > swipeThreshold) {
+                if (diffX > 0) {
+                    navigateMedia(1);
+                } else {
+                    navigateMedia(-1);
+                }
+            }
+
+            touchStartX = 0;
+            touchStartY = 0;
+            touchEndX = 0;
+            touchEndY = 0;
+            isSwiping = false;
+        }
+
+        function navigateMedia(direction) {
+            if (allMediaKeys.length === 0) return;
+
+            currentMediaIndex += direction;
+            if (currentMediaIndex < 0) currentMediaIndex = allMediaKeys.length - 1;
+            if (currentMediaIndex >= allMediaKeys.length) currentMediaIndex = 0;
+
+            const key = allMediaKeys[currentMediaIndex];
+            const imgSrc = `${WORKER_URL}/api/image/${encodeURIComponent(key)}`;
+
+            const content = document.getElementById('lightbox-content');
+            const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
+            const isVideo = videoExtensions.some(ext => key.toLowerCase().endsWith(ext));
+
+            if (isVideo) {
+                content.innerHTML = `<video src="${imgSrc}" controls autoplay loop style="max-width: 90%; max-height: 90vh; object-fit: contain; border-radius: var(--radius-large);"></video>`;
+            } else {
+                content.innerHTML = `<img src="${imgSrc}" alt="" style="max-width: 90%; max-height: 90vh; border-radius: var(--radius-large);">`;
+            }
         }
 
         function closeLightbox() {
-            document.getElementById('lightbox').classList.remove('active');
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+
+            // 이벤트 리스너 정리
+            lightbox.removeEventListener('touchstart', handleLightboxTouchStart);
+            lightbox.removeEventListener('touchmove', handleLightboxTouchMove);
+            lightbox.removeEventListener('touchend', handleLightboxTouchEnd);
+
+            touchStartX = 0;
+            touchStartY = 0;
+            touchEndX = 0;
+            touchEndY = 0;
+            isSwiping = false;
+            currentMediaIndex = 0;
+            allMediaKeys = [];
         }
 
         function showToast(message, type = 'success') {
@@ -1370,6 +1536,7 @@
             }
         }
 
+        initHistory();
         loadFolders();
         loadStorageStats();
     </script>
