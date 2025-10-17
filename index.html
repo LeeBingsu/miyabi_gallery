@@ -814,6 +814,63 @@
 }
 
 
+    
+        /* 화살표 (배경 없음, 클릭 영역 유지) */
+        .viewer-arrow {
+            position: fixed !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            width: 50px !important;  /* 클릭 영역 */
+            height: 80px !important;  /* 클릭 영역 (세로로 길게) */
+            background: transparent !important;  /* 배경 제거 */
+            border-radius: 0 !important;  /* 원형 제거 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px !important;  /* 화살표 크게 */
+            cursor: pointer;
+            z-index: 10002 !important;
+            pointer-events: auto !important;
+            user-select: none !important;
+            opacity: 0;  /* 기본 숨김 */
+            transition: opacity 0.3s ease, transform 0.2s ease !important;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);  /* 그림자로 가독성 */
+        }
+
+        /* 뷰어에 마우스/터치 시 화살표 표시 */
+        .fullscreen-viewer.active:hover .viewer-arrow,
+        .fullscreen-viewer.active.show-arrows .viewer-arrow {
+            opacity: 1;
+        }
+
+        .viewer-arrow:hover {
+            transform: translateY(-50%) scale(1.2) !important;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 1);
+        }
+
+        .viewer-arrow:active {
+            transform: translateY(-50%) scale(0.9) !important;
+        }
+
+        .viewer-arrow.left { 
+            left: 10px !important;
+            justify-content: flex-start;
+        }
+
+        .viewer-arrow.right { 
+            right: 10px !important;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 640px) {
+            .viewer-arrow {
+                width: 45px !important;
+                height: 70px !important;
+                font-size: 28px !important;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -844,7 +901,7 @@
         async function checkPassword() {
             const input = document.getElementById('passwordInput').value;
 
-            if (input) {
+            if (input.length >= 1) {
                 const hash = await hashPassword(input);
 
                 if (hash === PASSWORD_HASH) {
@@ -860,8 +917,10 @@
             }
         }
 
-        //document.getElementById('passwordInput').addEventListener('input', checkPassword);
-        
+        document.getElementById('passwordInput').addEventListener('input', checkPassword);
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
 
         function checkAuth() {
             const authExpiry = localStorage.getItem('galleryAuth');
@@ -876,6 +935,33 @@
                 }
             }
         }
+
+        
+        // 화살표 자동 숨김/표시
+        let arrowTimeout = null;
+
+        function showViewerArrows() {
+            const viewer = document.getElementById('fullscreenViewer');
+            if (viewer && viewer.classList.contains('active')) {
+                viewer.classList.add('show-arrows');
+
+                // 3초 후 자동 숨김
+                if (arrowTimeout) clearTimeout(arrowTimeout);
+                arrowTimeout = setTimeout(() => {
+                    viewer.classList.remove('show-arrows');
+                }, 3000);
+            }
+        }
+
+        // 뷰어 활성화 시 이벤트 등록
+        document.addEventListener('DOMContentLoaded', function() {
+            const viewer = document.getElementById('fullscreenViewer');
+            if (viewer) {
+                viewer.addEventListener('mousemove', showViewerArrows);
+                viewer.addEventListener('touchstart', showViewerArrows);
+                viewer.addEventListener('click', showViewerArrows);
+            }
+        });
 
         checkAuth();
     </script>
@@ -993,6 +1079,63 @@
         .viewer-arrow:hover { background: rgba(0, 0, 0, 0.9); transform: translateY(-50%) scale(1.1) !important; }
         .viewer-arrow.left { left: 20px !important; }
         .viewer-arrow.right { right: 20px !important; }
+
+    
+        /* 화살표 (배경 없음, 클릭 영역 유지) */
+        .viewer-arrow {
+            position: fixed !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            width: 50px !important;  /* 클릭 영역 */
+            height: 80px !important;  /* 클릭 영역 (세로로 길게) */
+            background: transparent !important;  /* 배경 제거 */
+            border-radius: 0 !important;  /* 원형 제거 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px !important;  /* 화살표 크게 */
+            cursor: pointer;
+            z-index: 10002 !important;
+            pointer-events: auto !important;
+            user-select: none !important;
+            opacity: 0;  /* 기본 숨김 */
+            transition: opacity 0.3s ease, transform 0.2s ease !important;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);  /* 그림자로 가독성 */
+        }
+
+        /* 뷰어에 마우스/터치 시 화살표 표시 */
+        .fullscreen-viewer.active:hover .viewer-arrow,
+        .fullscreen-viewer.active.show-arrows .viewer-arrow {
+            opacity: 1;
+        }
+
+        .viewer-arrow:hover {
+            transform: translateY(-50%) scale(1.2) !important;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 1);
+        }
+
+        .viewer-arrow:active {
+            transform: translateY(-50%) scale(0.9) !important;
+        }
+
+        .viewer-arrow.left { 
+            left: 10px !important;
+            justify-content: flex-start;
+        }
+
+        .viewer-arrow.right { 
+            right: 10px !important;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 640px) {
+            .viewer-arrow {
+                width: 45px !important;
+                height: 70px !important;
+                font-size: 28px !important;
+            }
+        }
 
     </style>
 
