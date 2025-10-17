@@ -1160,22 +1160,148 @@
             }
         }
 
-        async function generateVideoThumbnail(e){return new Promise(((t,n)=>{const o=document.createElement("video");o.preload="metadata",o.src=URL.createObjectURL(e),o.muted=!0,o.playsInline=!0,o.addEventListener("loadeddata",(()=>{o.currentTime=Math.min(1,o.duration/2)})),o.addEventListener("seeked",(()=>{const e=document.createElement("canvas");e.width=300,e.height=300;const n=e.getContext("2d"),a=o.videoWidth/o.videoHeight;let i,l,r=0,s=0;a>1?(l=300,i=300*a,r=-(i-300)/2):(i=300,l=300/a,s=-(l-300)/2),n.drawImage(o,r,s,i,l),e.toBlob((e=>{URL.revokeObjectURL(o.src),t(e)}),"image/jpeg",.8)})),o.addEventListener("error",(e=>{URL.revokeObjectURL(o.src),n(e)}))}))}
-        function addGalleryItemRealtime(e,t){const n=document.getElementById("gallery"),o=document.createElement("div");o.className="gallery-item loading",o.dataset.key=(currentFolder?currentFolder+"/":"")+e;const a=[".mp4",".webm",".ogg",".mov",".avi"].some((t=>e.toLowerCase().endsWith(t)));if(a)o.innerHTML='<div class="gallery-item-overlay">Uploading...</div><div class="gallery-item-name">'+e+"</div>";else{const t=Array.from(document.getElementById("fileInput").files).find((t=>t.name===e));t?(reader=new FileReader,reader.onload=t=>{o.innerHTML='<img src="'+t.target.result+'" alt="'+e+'" loading="lazy"><div class="gallery-item-overlay">Uploading...</div><div class="gallery-item-name">'+e+"</div>"},reader.readAsDataURL(t)):o.innerHTML='<div class="gallery-item-overlay">Uploading...</div><div class="gallery-item-name">'+e+"</div>"}return n.appendChild(o),o}
-        function updateGalleryItemComplete(e,t){e.classList.remove("loading");const n=e.querySelector(".gallery-item-overlay");n&&n.remove();const o=[".mp4",".webm",".ogg",".mov",".avi"].some((e=>t.toLowerCase().endsWith(e))),a=e.dataset.key,i=WORKER_URL+"/api/image/"+encodeURIComponent(a);if(o){const n=".thumbnails/"+a+".jpg",o=WORKER_URL+"/api/image/"+encodeURIComponent(n);e.innerHTML='<img src="'+o+'" alt="'+t+'" loading="lazy" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:48px;color:white\">▶</div></div>\'"><div class="gallery-item-name">'+t+"</div>"}else e.innerHTML='<img src="'+i+'" alt="'+t+'" loading="lazy"><div class="gallery-item-name">'+t+"</div>";e.onclick=e=>handleImageClick(a,e)}
-        function openLightbox(e,t){const n=document.getElementById("lightbox"),o=document.getElementById("lightbox-content"),a=document.getElementById("thumbnailGallery"),i=Array.from(document.querySelectorAll(".gallery-item"));if(allMediaKeys=i.map((e=>e.dataset.key)),t&&(currentMediaIndex=allMediaKeys.indexOf(t)),[".mp4",".webm",".ogg",".mov",".avi"].some((t=>e.toLowerCase().endsWith(t)))?o.innerHTML='<video src="'+e+'" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>':o.innerHTML='<img src="'+e+'" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">',a.innerHTML="",allMediaKeys.forEach(((e,t)=>{const n=document.createElement("div");n.className="thumbnail-item"+(t===currentMediaIndex?" active":"");const o=[".mp4",".webm",".ogg",".mov",".avi"].some((t=>e.toLowerCase().endsWith(t))),i=".thumbnails/"+(currentFolder?currentFolder+"/":"")+e.split("/").pop()+(o?".jpg":""),l=WORKER_URL+"/api/image/"+encodeURIComponent(o?i:e);n.innerHTML=o?'<img src="'+l+'" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:32px;color:white\">▶</div></div>\'"><div class="video-icon">▶</div>':'<img src="'+l+'">',n.onclick=e=>{e.stopPropagation(),jumpToMedia(t)},a.appendChild(n)})),scrollToActiveThumbnail(),n.classList.add("active")};
-        function jumpToMedia(e){currentMediaIndex=e;const t=allMediaKeys[e],n=WORKER_URL+"/api/image/"+encodeURIComponent(t),o=document.getElementById("lightbox-content");[".mp4",".webm",".ogg",".mov",".avi"].some((e=>t.toLowerCase().endsWith(e)))?o.innerHTML='<video src="'+n+'" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>':o.innerHTML='<img src="'+n+'" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">',updateActiveThumbnail(),scrollToActiveThumbnail()};
-        function updateActiveThumbnail(){document.querySelectorAll(".thumbnail-item").forEach(((e,t)=>{t===currentMediaIndex?e.classList.add("active"):e.classList.remove("active")}))}
-        function scrollToActiveThumbnail(){const e=document.getElementById("thumbnailGallery").querySelector(".thumbnail-item.active");e&&e.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"})}
-        function toggleImageZoom(e){"100%"===e.style.maxWidth?(e.style.maxWidth="none",e.style.cursor="zoom-out"):(e.style.maxWidth="100%",e.style.cursor="zoom-in")};
-        function openViewerMode(){const e=Array.from(document.querySelectorAll(".gallery-item"));if(!e.length)return void showToast("No images","error");viewerMediaKeys=e.map((e=>e.dataset.key)),viewerCurrentIndex=0;const t=document.getElementById("fullscreenViewer");t.classList.add("active"),showViewerMedia(0),t.addEventListener("touchstart",handleViewerTouchStart,{passive:!1}),t.addEventListener("touchmove",handleViewerTouchMove,{passive:!1}),t.addEventListener("touchend",handleViewerTouchEnd,{passive:!1})};
-        function closeViewerMode(){const e=document.getElementById("fullscreenViewer");e.classList.remove("active"),e.removeEventListener("touchstart",handleViewerTouchStart),e.removeEventListener("touchmove",handleViewerTouchMove),e.removeEventListener("touchend",handleViewerTouchEnd)}
-        function showViewerMedia(e){if(e<0||e>=viewerMediaKeys.length)return;viewerCurrentIndex=e;const t=viewerMediaKeys[e],n=WORKER_URL+"/api/image/"+encodeURIComponent(t),o=document.getElementById("viewerContent"),a=document.getElementById("viewerCounter");[".mp4",".webm",".ogg",".mov",".avi"].some((e=>t.toLowerCase().endsWith(e)))?o.innerHTML='<video src="'+n+'" controls autoplay loop style="max-width:100%;max-height:100%"></video>':o.innerHTML='<img src="'+n+'" style="max-width:100%;max-height:100%">',a.textContent=e+1+" / "+viewerMediaKeys.length}
-        function nextViewerMedia(){showViewerMedia((viewerCurrentIndex+1)%viewerMediaKeys.length)}
-        function prevViewerMedia(){showViewerMedia(viewerCurrentIndex-1<0?viewerMediaKeys.length-1:viewerCurrentIndex-1)}
-        function handleViewerTouchStart(e){"VIDEO"!==e.target.tagName&&"BUTTON"!==e.target.tagName&&(viewerTouchStartX=e.touches[0].clientX,viewerIsSwiping=!1)}
-        function handleViewerTouchMove(e){viewerTouchStartX&&"VIDEO"!==e.target.tagName&&"BUTTON"!==e.target.tagName&&Math.abs(viewerTouchStartX-e.touches[0].clientX)>10&&(viewerIsSwiping=!0,e.preventDefault())}
-        function handleViewerTouchEnd(e){if("VIDEO"===e.target.tagName||"BUTTON"===e.target.tagName)return;if(viewerIsSwiping&&viewerTouchStartX){const t=viewerTouchStartX-e.changedTouches[0].clientX;Math.abs(t)>50&&(t>0?nextViewerMedia():prevViewerMedia())}else if(!viewerIsSwiping&&"BUTTON"!==e.target.tagName){const t=e.changedTouches[0].clientX,n=window.innerWidth;t<n/3?prevViewerMedia():t>2*n/3?nextViewerMedia():nextViewerMedia()}viewerTouchStartX=0,viewerIsSwiping=!1};
+        async function generateVideoThumbnail(videoFile) {
+            return new Promise((resolve, reject) => {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.src = URL.createObjectURL(videoFile);
+                video.muted = true;
+                video.playsInline = true;
+                video.addEventListener('loadeddata', () => { video.currentTime = Math.min(1, video.duration / 2); });
+                video.addEventListener('seeked', () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 300; canvas.height = 300;
+                    const ctx = canvas.getContext('2d');
+                    const aspect = video.videoWidth / video.videoHeight;
+                    let w, h, x = 0, y = 0;
+                    if (aspect > 1) { h = 300; w = 300 * aspect; x = -(w - 300) / 2; }
+                    else { w = 300; h = 300 / aspect; y = -(h - 300) / 2; }
+                    ctx.drawImage(video, x, y, w, h);
+                    canvas.toBlob(blob => { URL.revokeObjectURL(video.src); resolve(blob); }, 'image/jpeg', 0.8);
+                });
+                video.addEventListener('error', e => { URL.revokeObjectURL(video.src); reject(e); });
+            });
+        }
+
+        function addGalleryItemRealtime(fileName, fileType) {
+            const gallery = document.getElementById('gallery');
+            const galleryItem = document.createElement('div');
+            galleryItem.className = 'gallery-item loading';
+            galleryItem.dataset.key = (currentFolder ? currentFolder + '/' : '') + fileName;
+            const isVideo = ['.mp4', '.webm', '.ogg', '.mov', '.avi'].some(ext => fileName.toLowerCase().endsWith(ext));
+            if (isVideo) {
+                galleryItem.innerHTML = '<div class="gallery-item-overlay">Uploading...</div><div class="gallery-item-name">' + fileName + '</div>';
+            } else {
+                const file = Array.from(document.getElementById('fileInput').files).find(f => f.name === fileName);
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => { galleryItem.innerHTML = '<img src="' + e.target.result + '" alt="' + fileName + '" loading="lazy"><div class="gallery-item-overlay">Uploading...</div><div class="gallery-item-name">' + fileName + '</div>'; };
+                    reader.readAsDataURL(file);
+                } else {
+                    galleryItem.innerHTML = '<div class="gallery-item-overlay">Uploading...</div><div class="gallery-item-name">' + fileName + '</div>';
+                }
+            }
+            gallery.appendChild(galleryItem);
+            return galleryItem;
+        }
+
+        function updateGalleryItemComplete(galleryItem, fileName) {
+            galleryItem.classList.remove('loading');
+            const overlay = galleryItem.querySelector('.gallery-item-overlay');
+            if (overlay) overlay.remove();
+            const isVideo = ['.mp4', '.webm', '.ogg', '.mov', '.avi'].some(ext => fileName.toLowerCase().endsWith(ext));
+            const key = galleryItem.dataset.key;
+            const imgSrc = WORKER_URL + '/api/image/' + encodeURIComponent(key);
+            if (isVideo) {
+                const thumbnailPath = '.thumbnails/' + key + '.jpg';
+                const thumbSrc = WORKER_URL + '/api/image/' + encodeURIComponent(thumbnailPath);
+                galleryItem.innerHTML = '<img src="' + thumbSrc + '" alt="' + fileName + '" loading="lazy" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:48px;color:white\">▶</div></div>\'"><div class="gallery-item-name">' + fileName + '</div>';
+            } else {
+                galleryItem.innerHTML = '<img src="' + imgSrc + '" alt="' + fileName + '" loading="lazy"><div class="gallery-item-name">' + fileName + '</div>';
+            }
+            galleryItem.onclick = (e) => handleImageClick(key, e);
+        }
+
+        function openLightbox(imgSrc, mediaKey) {
+            const lightbox = document.getElementById('lightbox');
+            const content = document.getElementById('lightbox-content');
+            const gallery = document.getElementById('thumbnailGallery');
+            const items = Array.from(document.querySelectorAll('.gallery-item'));
+            allMediaKeys = items.map(i => i.dataset.key);
+            if (mediaKey) currentMediaIndex = allMediaKeys.indexOf(mediaKey);
+            const vExts = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
+            const isV = vExts.some(e => imgSrc.toLowerCase().endsWith(e));
+            content.innerHTML = isV ? '<video src="' + imgSrc + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>' : '<img src="' + imgSrc + '" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">';
+            gallery.innerHTML = '';
+            allMediaKeys.forEach((k, i) => {
+                const d = document.createElement('div');
+                d.className = 'thumbnail-item' + (i === currentMediaIndex ? ' active' : '');
+                const isTV = vExts.some(e => k.toLowerCase().endsWith(e));
+                const thumbPath = '.thumbnails/' + (currentFolder ? currentFolder + '/' : '') + k.split('/').pop() + (isTV ? '.jpg' : '');
+                const ts = WORKER_URL + '/api/image/' + encodeURIComponent(isTV ? thumbPath : k);
+                d.innerHTML = isTV ? '<img src="' + ts + '" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:32px;color:white\">▶</div></div>\'"><div class="video-icon">▶</div>' : '<img src="' + ts + '">';
+                d.onclick = e => { e.stopPropagation(); jumpToMedia(i); };
+                gallery.appendChild(d);
+            });
+            scrollToActiveThumbnail();
+            lightbox.classList.add('active');
+        }
+
+        function jumpToMedia(i) {
+            currentMediaIndex = i;
+            const k = allMediaKeys[i], src = WORKER_URL + '/api/image/' + encodeURIComponent(k), c = document.getElementById('lightbox-content');
+            const v = ['.mp4', '.webm', '.ogg', '.mov', '.avi'], isV = v.some(e => k.toLowerCase().endsWith(e));
+            c.innerHTML = isV ? '<video src="' + src + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>' : '<img src="' + src + '" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">';
+            updateActiveThumbnail(); scrollToActiveThumbnail();
+        }
+
+        function updateActiveThumbnail() { document.querySelectorAll('.thumbnail-item').forEach((t, i) => { i === currentMediaIndex ? t.classList.add('active') : t.classList.remove('active'); }); }
+        function scrollToActiveThumbnail() { const a = document.getElementById('thumbnailGallery').querySelector('.thumbnail-item.active'); if (a) a.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }
+        function toggleImageZoom(img) { if (img.style.maxWidth === '100%') { img.style.maxWidth = 'none'; img.style.cursor = 'zoom-out'; } else { img.style.maxWidth = '100%'; img.style.cursor = 'zoom-in'; } }
+
+        function openViewerMode() {
+            const items = Array.from(document.querySelectorAll('.gallery-item'));
+            if (!items.length) { showToast('No images', 'error'); return; }
+            viewerMediaKeys = items.map(i => i.dataset.key); viewerCurrentIndex = 0;
+            const v = document.getElementById('fullscreenViewer');
+            v.classList.add('active'); showViewerMedia(0);
+            v.addEventListener('touchstart', handleViewerTouchStart, { passive: false });
+            v.addEventListener('touchmove', handleViewerTouchMove, { passive: false });
+            v.addEventListener('touchend', handleViewerTouchEnd, { passive: false });
+        }
+
+        function closeViewerMode() {
+            const v = document.getElementById('fullscreenViewer'); v.classList.remove('active');
+            v.removeEventListener('touchstart', handleViewerTouchStart);
+            v.removeEventListener('touchmove', handleViewerTouchMove);
+            v.removeEventListener('touchend', handleViewerTouchEnd);
+        }
+
+        function showViewerMedia(i) {
+            if (i < 0 || i >= viewerMediaKeys.length) return;
+            viewerCurrentIndex = i;
+            const k = viewerMediaKeys[i], src = WORKER_URL + '/api/image/' + encodeURIComponent(k);
+            const c = document.getElementById('viewerContent'), ct = document.getElementById('viewerCounter');
+            const v = ['.mp4', '.webm', '.ogg', '.mov', '.avi'], isV = v.some(e => k.toLowerCase().endsWith(e));
+            c.innerHTML = isV ? '<video src="' + src + '" controls autoplay loop style="max-width:100%;max-height:100%"></video>' : '<img src="' + src + '" style="max-width:100%;max-height:100%">';
+            ct.textContent = (i + 1) + ' / ' + viewerMediaKeys.length;
+        }
+
+        function nextViewerMedia() { showViewerMedia((viewerCurrentIndex + 1) % viewerMediaKeys.length); }
+        function prevViewerMedia() { showViewerMedia(viewerCurrentIndex - 1 < 0 ? viewerMediaKeys.length - 1 : viewerCurrentIndex - 1); }
+        function handleViewerTouchStart(e) { if (e.target.tagName === 'VIDEO' || e.target.tagName === 'BUTTON') return; viewerTouchStartX = e.touches[0].clientX; viewerIsSwiping = false; }
+        function handleViewerTouchMove(e) { if (!viewerTouchStartX || e.target.tagName === 'VIDEO' || e.target.tagName === 'BUTTON') return; if (Math.abs(viewerTouchStartX - e.touches[0].clientX) > 10) { viewerIsSwiping = true; e.preventDefault(); } }
+        function handleViewerTouchEnd(e) {
+            if (e.target.tagName === 'VIDEO' || e.target.tagName === 'BUTTON') return;
+            if (viewerIsSwiping && viewerTouchStartX) {
+                const dx = viewerTouchStartX - e.changedTouches[0].clientX;
+                if (Math.abs(dx) > 50) { dx > 0 ? nextViewerMedia() : prevViewerMedia(); }
+            } else if (!viewerIsSwiping && e.target.tagName !== 'BUTTON') {
+                const x = e.changedTouches[0].clientX, w = window.innerWidth;
+                x < w / 3 ? prevViewerMedia() : x > w * 2 / 3 ? nextViewerMedia() : nextViewerMedia();
+            }
+            viewerTouchStartX = 0; viewerIsSwiping = false;
+        }
 
         function closeLightbox(){document.getElementById("lightbox").classList.remove("active"),currentMediaIndex=0,allMediaKeys=[]}
 
