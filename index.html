@@ -860,10 +860,8 @@
             }
         }
 
-        document.getElementById('passwordInput').addEventListener('input', checkPassword);
-        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') checkPassword();
-        });
+        //document.getElementById('passwordInput').addEventListener('input', checkPassword);
+        
 
         function checkAuth() {
             const authExpiry = localStorage.getItem('galleryAuth');
