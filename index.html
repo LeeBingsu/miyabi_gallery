@@ -1399,7 +1399,7 @@
                         item.dataset.key = img.key;
                         item.innerHTML = `
                             <input type="checkbox" class="gallery-item-checkbox" onchange="toggleImageSelection('${img.key.replace(/'/g, "\'")}')">
-                            <img src="${WORKER_URL}/api/image/${encodeURIComponent(img.key)}" alt="Photo">
+                            <img src="${WORKER_URL}/api/image/${img.key}" alt="Photo">
                             <button class="delete-btn" onclick="deleteFile('${img.key.replace(/'/g, "\'")}', event)">×</button>
                         `;
 
@@ -1469,7 +1469,7 @@
             if (!confirm('Delete this photo?')) return;
 
             try {
-                await fetch(`${WORKER_URL}/api/delete-file/${encodeURIComponent(key)}`, {
+                await fetch(`${WORKER_URL}/api/delete-file/${key}`, {
                     method: 'DELETE'
                 });
 
@@ -1808,7 +1808,7 @@
 
                 for (let i = 0; i < pendingZipImages.length; i++) {
                     const key = pendingZipImages[i];
-                    const url = `${WORKER_URL}/api/image/${encodeURIComponent(key)}`;
+                    const url = `${WORKER_URL}/api/image/${key}`;
                     const filename = key.split('/').pop();
 
                     try {
@@ -1879,7 +1879,7 @@
 
             try {
                 for (const key of selectedImages) {
-                    await fetch(`${WORKER_URL}/api/delete-file/${encodeURIComponent(key)}`, {
+                    await fetch(`${WORKER_URL}/api/delete-file/${key}`, {
                         method: 'DELETE'
                     });
                 }
