@@ -1671,8 +1671,8 @@
             
             const isTxt = k.toLowerCase().endsWith('.txt');
             if (isTxt) {
-                fetch(src)
-                    , {credentials: 'include'}).then(response => response.text())
+                fetch(src, { credentials: 'include' })
+                    .then(response => response.text())
                     .then(text => {
                         const escaped = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
                         c.innerHTML = '<div class="txt-viewer"><pre>' + escaped + '</pre></div>';
