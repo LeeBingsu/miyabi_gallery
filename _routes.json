@@ -1,13 +1,14 @@
 {
   "version": 1,
   "include": [
-    "/api/*"
+    "/api/*",
+    "/admin/*"
   ],
   "exclude": [
     "/",
-    "/index.html",
+    "/assets/*",
     "/*.css",
     "/*.js",
-    "/assets/*"
+    "/favicon.ico"
   ]
 }
