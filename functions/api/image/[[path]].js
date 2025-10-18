@@ -48,15 +48,3 @@ export async function onRequestGet(context) {
     }
 }
 
-// OPTIONS 요청 처리 (CORS Preflight)
-export async function onRequestOptions(context) {
-    return new Response(null, {
-        status: 204,
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Cf-Access-Jwt-Assertion',
-            'Access-Control-Allow-Credentials': 'true'
-        }
-    });
-}
