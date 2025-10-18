@@ -1597,10 +1597,10 @@
             if (overlay) overlay.remove();
             const isVideo = ['.mp4', '.webm', '.ogg', '.mov', '.avi'].some(ext => fileName.toLowerCase().endsWith(ext));
             const key = galleryItem.dataset.key;
-            const imgSrc = WORKER_URL + '/api/image/' + encodeURIComponent(key);
+            const imgSrc = WORKER_URL + '/api/image/' + key;
             if (isVideo) {
                 const thumbnailPath = '.thumbnails/' + key + '.jpg';
-                const thumbSrc = WORKER_URL + '/api/image/' + encodeURIComponent(thumbnailPath);
+                const thumbSrc = WORKER_URL + '/api/image/' + thumbnailPath;
                 galleryItem.innerHTML = '<img src="' + thumbSrc + '" alt="' + fileName + '" loading="lazy" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:48px;color:white\">▶</div></div>\'"><div class="gallery-item-name">' + fileName + '</div>';
             } else {
                 galleryItem.innerHTML = '<img src="' + imgSrc + '" alt="' + fileName + '" loading="lazy"><div class="gallery-item-name">' + fileName + '</div>';
@@ -1624,7 +1624,7 @@
                 d.className = 'thumbnail-item' + (i === currentMediaIndex ? ' active' : '');
                 const isTV = vExts.some(e => k.toLowerCase().endsWith(e));
                 const thumbPath = '.thumbnails/' + (currentFolder ? currentFolder + '/' : '') + k.split('/').pop() + (isTV ? '.jpg' : '');
-                const ts = WORKER_URL + '/api/image/' + encodeURIComponent(isTV ? thumbPath : k);
+                const ts = WORKER_URL + '/api/image/' + isTV ? thumbPath : k;
                 d.innerHTML = isTV ? '<img src="' + ts + '" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:32px;color:white\">▶</div></div>\'"><div class="video-icon">▶</div>' : '<img src="' + ts + '">';
                 d.onclick = e => { e.stopPropagation(); jumpToMedia(i); };
                 gallery.appendChild(d);
@@ -1635,7 +1635,7 @@
 
         function jumpToMedia(i) {
             currentMediaIndex = i;
-            const k = allMediaKeys[i], src = WORKER_URL + '/api/image/' + encodeURIComponent(k), c = document.getElementById('lightbox-content');
+            const k = allMediaKeys[i], src = WORKER_URL + '/api/image/' + k, c = document.getElementById('lightbox-content');
             const v = ['.mp4', '.webm', '.ogg', '.mov', '.avi'], isV = v.some(e => k.toLowerCase().endsWith(e));
             c.innerHTML = isV ? '<video src="' + src + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>' : '<img src="' + src + '" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">';
             updateActiveThumbnail(); scrollToActiveThumbnail();
@@ -1666,7 +1666,7 @@
         function showViewerMedia(i) {
             if (i < 0 || i >= viewerMediaKeys.length) return;
             viewerCurrentIndex = i;
-            const k = viewerMediaKeys[i], src = WORKER_URL + '/api/image/' + encodeURIComponent(k);
+            const k = viewerMediaKeys[i], src = WORKER_URL + '/api/image/' + k;
             const c = document.getElementById('viewerContent'), ct = document.getElementById('viewerCounter');
             
             const isTxt = k.toLowerCase().endsWith('.txt');
