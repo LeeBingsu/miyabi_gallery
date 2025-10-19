@@ -1379,7 +1379,7 @@
             currentFolder = folder;
 
             try {
-                const response = await fetch(`${WORKER_URL}/api/list/${encodeURIComponent(folder)}`);
+                const response = await fetch(`${WORKER_URL}/api/list?path=${encodeURIComponent(folder)}`);
                 const images = await response.json();
 
                 const gallery = document.getElementById('gallery');
