@@ -1,6 +1,6 @@
 export const onRequest = async ({ env, request }) => {
   const dryRun = (new URL(request.url)).searchParams.get('dryRun') === '1' || request.method === 'GET';
-  const r2 = env.R2;
+  const r2 = env.GALLERY_BUCKET;
 
   const prefix = '';
   const toMigrate = [];
