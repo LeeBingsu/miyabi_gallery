@@ -1617,30 +1617,34 @@
 }
 
 
-        function openLightbox(imgSrc, mediaKey) {
-            const lightbox = document.getElementById('lightbox');
-            const content = document.getElementById('lightbox-content');
-            const gallery = document.getElementById('thumbnailGallery');
-            const items = Array.from(document.querySelectorAll('.gallery-item'));
-            allMediaKeys = items.map(i => i.dataset.key);
-            if (mediaKey) currentMediaIndex = allMediaKeys.indexOf(mediaKey);
-            const vExts = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
-            const isV = vExts.some(e => imgSrc.toLowerCase().endsWith(e));
-            content.innerHTML = isV ? '<video src="' + imgSrc + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>' : '<img src="' + imgSrc + '" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">';
-            gallery.innerHTML = '';
-            allMediaKeys.forEach((k, i) => {
-                const d = document.createElement('div');
-                d.className = 'thumbnail-item' + (i === currentMediaIndex ? ' active' : '');
-                const isTV = vExts.some(e => k.toLowerCase().endsWith(e));
-                const thumbPath = '.thumbnails/' + (currentFolder ? currentFolder + '/' : '') + k.split('/').pop() + (isTV ? '.jpg' : '');
-                const ts = WORKER_URL + '/api/image/' + isTV ? thumbPath : k;
-                d.innerHTML = isTV ? '<img src="' + ts + '" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:32px;color:white\">▶</div></div>\'"><div class="video-icon">▶</div>' : '<img src="' + ts + '">';
-                d.onclick = e => { e.stopPropagation(); jumpToMedia(i); };
-                gallery.appendChild(d);
-            });
-            scrollToActiveThumbnail();
-            lightbox.classList.add('active');
-        }
+function openLightbox(imgSrc, mediaKey) {
+    const lightbox = document.getElementById('lightbox');
+    const content = document.getElementById('lightbox-content');
+    const gallery = document.getElementById('thumbnailGallery');
+    const items = Array.from(document.querySelectorAll('.gallery-item'));
+    allMediaKeys = items.map(i => i.dataset.key);
+    if (mediaKey) currentMediaIndex = allMediaKeys.indexOf(mediaKey);
+    const vExts = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
+    const isV = vExts.some(e => imgSrc.toLowerCase().endsWith(e));
+    content.innerHTML = isV ? '<video src="' + imgSrc + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>' : '<img src="' + imgSrc + '" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">';
+    gallery.innerHTML = '';
+    allMediaKeys.forEach((k, i) => {
+        const d = document.createElement('div');
+        d.className = 'thumbnail-item' + (i === currentMediaIndex ? ' active' : '');
+        const isTV = vExts.some(e => k.toLowerCase().endsWith(e));
+        
+        // 원래 방식: 비디오만 .thumbnails, 이미지는 원본 그대로
+        const ts = isTV 
+            ? `${WORKER_URL}/api/image/.thumbnails/${currentFolder ? currentFolder + '/' : ''}${k.split('/').pop()}.jpg`
+            : `${WORKER_URL}/api/image/${k}`;
+            
+        d.innerHTML = isTV ? '<img src="' + ts + '" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:32px;color:white\">▶</div></div>\'"><div class="video-icon">▶</div>' : '<img src="' + ts + '">';
+        d.onclick = e => { e.stopPropagation(); jumpToMedia(i); };
+        gallery.appendChild(d);
+    });
+    scrollToActiveThumbnail();
+    lightbox.classList.add('active');
+}
 
         function jumpToMedia(i) {
             currentMediaIndex = i;
