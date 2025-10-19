@@ -286,6 +286,26 @@
             object-fit: cover;
         }
 
+        /* Text File Preview Chip */
+        .txt-chip {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 16px;
+            line-height: 1.3;
+            text-align: center;
+            word-break: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .delete-btn {
             position: absolute;
             top: 6px;
@@ -1410,7 +1430,7 @@
 
                 const item = document.createElement('span');
                 item.className = index === currentPath.length - 1 ? 'breadcrumb-item current' : 'breadcrumb-item';
-                item.textContent = segment;
+                item.textContent = decodeURIComponent(segment); // URL decode folder names
                 if (index < currentPath.length - 1) {
                     item.onclick = () => navigateToPath(index);
                 }
@@ -1429,7 +1449,7 @@
                 folders.forEach(folder => {
                     const btn = document.createElement('button');
                     btn.className = 'folder-pill';
-                    btn.innerHTML = `📁 ${folder}`;
+                    btn.innerHTML = `📁 ${decodeURIComponent(folder)}`; // URL decode folder names
                     btn.onclick = () => navigateToFolder(folder);
                     folderList.appendChild(btn);
                 });
@@ -1440,7 +1460,7 @@
             }
         }
 
-        // Sorting functions
+        // Sorting functions (fixed to use original filename)
         function setSortMode(mode) {
             currentSortMode = mode;
             
@@ -1470,15 +1490,16 @@
             switch(mode) {
                 case 'name-az':
                     return sorted.sort((a, b) => {
-                        const nameA = a.key.split('/').pop().toLowerCase();
-                        const nameB = b.key.split('/').pop().toLowerCase();
+                        // Use original filename (last part of key, decoded)
+                        const nameA = decodeURIComponent(a.key.split('/').pop()).toLowerCase();
+                        const nameB = decodeURIComponent(b.key.split('/').pop()).toLowerCase();
                         return nameA.localeCompare(nameB);
                     });
                     
                 case 'name-za':
                     return sorted.sort((a, b) => {
-                        const nameA = a.key.split('/').pop().toLowerCase();
-                        const nameB = b.key.split('/').pop().toLowerCase();
+                        const nameA = decodeURIComponent(a.key.split('/').pop()).toLowerCase();
+                        const nameB = decodeURIComponent(b.key.split('/').pop()).toLowerCase();
                         return nameB.localeCompare(nameA);
                     });
                     
@@ -1522,15 +1543,30 @@
                 const item = document.createElement('div');
                 item.className = 'gallery-item';
                 item.dataset.key = img.key;
-                item.innerHTML = `
-                    <input type="checkbox" class="gallery-item-checkbox" onchange="toggleImageSelection('${img.key.replace(/'/g, "\'")}')">
-                    <img src="${WORKER_URL}/api/image/${img.key}" alt="Photo">
-                    <button class="delete-btn" onclick="deleteFile('${img.key.replace(/'/g, "\'")}', event)">×</button>
-                `;
+                
+                const isTxt = img.key.toLowerCase().endsWith('.txt');
+                
+                if (isTxt) {
+                    // Show text file as chip with filename (no extension)
+                    const fileName = decodeURIComponent(img.key.split('/').pop());
+                    const nameWithoutExt = fileName.replace(/\.txt$/i, '');
+                    
+                    item.innerHTML = `
+                        <input type="checkbox" class="gallery-item-checkbox" onchange="toggleImageSelection('${img.key.replace(/'/g, "\\'")}')">
+                        <div class="txt-chip" onclick="handleImageClick('${img.key.replace(/'/g, "\\'")}', event)">${nameWithoutExt}</div>
+                        <button class="delete-btn" onclick="deleteFile('${img.key.replace(/'/g, "\\'")}', event)">×</button>
+                    `;
+                } else {
+                    item.innerHTML = `
+                        <input type="checkbox" class="gallery-item-checkbox" onchange="toggleImageSelection('${img.key.replace(/'/g, "\\'")}')">
+                        <img src="${WORKER_URL}/api/image/${img.key}" alt="Photo">
+                        <button class="delete-btn" onclick="deleteFile('${img.key.replace(/'/g, "\\'")}', event)">×</button>
+                    `;
 
-                // Add click handler to image
-                const imgElement = item.querySelector('img');
-                imgElement.onclick = (e) => handleImageClick(img.key, e);
+                    // Add click handler to image
+                    const imgElement = item.querySelector('img');
+                    imgElement.onclick = (e) => handleImageClick(img.key, e);
+                }
 
                 gallery.appendChild(item);
             });
@@ -1591,6 +1627,7 @@
                         body: file,
                         headers: { 'Content-Type': file.type }
                     });
+                    count++;
                 }
                 showToast(`✓ Uploaded ${count} files!`, 'success');
                 loadGallery(targetFolder);
@@ -1642,7 +1679,7 @@
             if (!currentFolder) { showToast('Select a folder first', 'error'); return; }
 
             const currentName = currentPath[currentPath.length - 1];
-            const newName = prompt(`Rename "${currentName}" to:`);
+            const newName = prompt(`Rename "${decodeURIComponent(currentName)}" to:`);
             if (!newName) return;
 
             const parentPath = currentPath.slice(0, -1).join('/');
@@ -1666,7 +1703,7 @@
 
         async function showDeleteFolder() {
             if (!currentFolder) { showToast('Select a folder first', 'error'); return; }
-            if (!confirm(`Delete "${currentPath[currentPath.length - 1]}" and all contents?`)) return;
+            if (!confirm(`Delete "${decodeURIComponent(currentPath[currentPath.length - 1])}" and all contents?`)) return;
 
             try {
                 await fetch(`${WORKER_URL}/api/delete-folder`, {
@@ -1713,7 +1750,12 @@
             galleryItem.className = 'gallery-item loading';
             galleryItem.dataset.key = (currentFolder ? currentFolder + '/' : '') + fileName;
             const isVideo = ['.mp4', '.webm', '.ogg', '.mov', '.avi'].some(ext => fileName.toLowerCase().endsWith(ext));
-            if (isVideo) {
+            const isTxt = fileName.toLowerCase().endsWith('.txt');
+            
+            if (isTxt) {
+                const nameWithoutExt = fileName.replace(/\.txt$/i, '');
+                galleryItem.innerHTML = `<div class="txt-chip">${nameWithoutExt}</div><div class="gallery-item-overlay">Uploading...</div>`;
+            } else if (isVideo) {
                 galleryItem.innerHTML = '<div class="gallery-item-overlay">Uploading...</div><div class="gallery-item-name">' + fileName + '</div>';
             } else {
                 const file = Array.from(document.getElementById('fileInput').files).find(f => f.name === fileName);
@@ -1734,9 +1776,14 @@
             const overlay = galleryItem.querySelector('.gallery-item-overlay');
             if (overlay) overlay.remove();
             const isVideo = ['.mp4', '.webm', '.ogg', '.mov', '.avi'].some(ext => fileName.toLowerCase().endsWith(ext));
+            const isTxt = fileName.toLowerCase().endsWith('.txt');
             const key = galleryItem.dataset.key;
             const imgSrc = WORKER_URL + '/api/image/' + key;
-            if (isVideo) {
+            
+            if (isTxt) {
+                const nameWithoutExt = fileName.replace(/\.txt$/i, '');
+                galleryItem.innerHTML = `<div class="txt-chip">${nameWithoutExt}</div>`;
+            } else if (isVideo) {
                 const thumbnailPath = '.thumbnails/' + key + '.jpg';
                 const thumbSrc = WORKER_URL + '/api/image/' + thumbnailPath;
                 galleryItem.innerHTML = '<img src="' + thumbSrc + '" alt="' + fileName + '" loading="lazy" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:48px;color:white\">▶</div></div>\'" ><div class="gallery-item-name">' + fileName + '</div>';
@@ -1763,19 +1810,44 @@
             if (mediaKey) currentMediaIndex = allMediaKeys.indexOf(mediaKey);
             const vExts = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
             const isV = vExts.some(e => imgSrc.toLowerCase().endsWith(e));
-            content.innerHTML = isV ? '<video src="' + imgSrc + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>' : '<img src="' + imgSrc + '" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">';
+            const isTxt = imgSrc.toLowerCase().endsWith('.txt');
+            
+            if (isTxt) {
+                // Show text content in lightbox
+                fetch(imgSrc, { credentials: 'include' })
+                    .then(response => response.text())
+                    .then(text => {
+                        const escaped = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        content.innerHTML = '<div class="txt-viewer"><pre>' + escaped + '</pre></div>';
+                    })
+                    .catch(() => {
+                        content.innerHTML = '<div class="txt-viewer"><pre>Failed to load text content</pre></div>';
+                    });
+            } else {
+                content.innerHTML = isV ? '<video src="' + imgSrc + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>' : '<img src="' + imgSrc + '" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">';
+            }
+            
             gallery.innerHTML = '';
             allMediaKeys.forEach((k, i) => {
                 const d = document.createElement('div');
                 d.className = 'thumbnail-item' + (i === currentMediaIndex ? ' active' : '');
                 const isTV = vExts.some(e => k.toLowerCase().endsWith(e));
+                const isTxtThumb = k.toLowerCase().endsWith('.txt');
                 
-                // 원래 방식: 비디오만 .thumbnails, 이미지는 원본 그대로
-                const ts = isTV 
-                    ? `${WORKER_URL}/api/image/.thumbnails/${currentFolder ? currentFolder + '/' : ''}${k.split('/').pop()}.jpg`
-                    : `${WORKER_URL}/api/image/${k}`;
-                    
-                d.innerHTML = isTV ? '<img src="' + ts + '" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:32px;color:white\">▶</div></div>\'" ><div class="video-icon">▶</div>' : '<img src="' + ts + '">';
+                if (isTxtThumb) {
+                    // Text file thumbnail - show as small chip
+                    const fileName = decodeURIComponent(k.split('/').pop());
+                    const nameWithoutExt = fileName.replace(/\.txt$/i, '');
+                    d.innerHTML = `<div style="width:100%;height:100%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600;text-align:center;padding:4px;border-radius:6px;word-break:break-word;overflow:hidden">${nameWithoutExt}</div>`;
+                } else {
+                    // Original thumbnail logic: video uses .thumbnails, image uses original
+                    const ts = isTV 
+                        ? `${WORKER_URL}/api/image/.thumbnails/${currentFolder ? currentFolder + '/' : ''}${k.split('/').pop()}.jpg`
+                        : `${WORKER_URL}/api/image/${k}`;
+                        
+                    d.innerHTML = isTV ? '<img src="' + ts + '" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:32px;color:white\">▶</div></div>\'" ><div class="video-icon">▶</div>' : '<img src="' + ts + '">';
+                }
+                
                 d.onclick = e => { e.stopPropagation(); jumpToMedia(i); };
                 gallery.appendChild(d);
             });
@@ -1787,7 +1859,21 @@
             currentMediaIndex = i;
             const k = allMediaKeys[i], src = WORKER_URL + '/api/image/' + k, c = document.getElementById('lightbox-content');
             const v = ['.mp4', '.webm', '.ogg', '.mov', '.avi'], isV = v.some(e => k.toLowerCase().endsWith(e));
-            c.innerHTML = isV ? '<video src="' + src + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>' : '<img src="' + src + '" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">';
+            const isTxt = k.toLowerCase().endsWith('.txt');
+            
+            if (isTxt) {
+                fetch(src, { credentials: 'include' })
+                    .then(response => response.text())
+                    .then(text => {
+                        const escaped = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        c.innerHTML = '<div class="txt-viewer"><pre>' + escaped + '</pre></div>';
+                    })
+                    .catch(() => {
+                        c.innerHTML = '<div class="txt-viewer"><pre>Failed to load text content</pre></div>';
+                    });
+            } else {
+                c.innerHTML = isV ? '<video src="' + src + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>' : '<img src="' + src + '" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">';
+            }
             updateActiveThumbnail(); scrollToActiveThumbnail();
         }
 
@@ -1823,6 +1909,9 @@
                     .then(text => {
                         const escaped = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
                         c.innerHTML = '<div class="txt-viewer"><pre>' + escaped + '</pre></div>';
+                    })
+                    .catch(() => {
+                        c.innerHTML = '<div class="txt-viewer"><pre>Failed to load text content</pre></div>';
                     });
             } else {
                 const v = ['.mp4', '.webm', '.ogg', '.mov', '.avi'], isV = v.some(e => k.toLowerCase().endsWith(e));
@@ -1942,7 +2031,7 @@
                 for (let i = 0; i < pendingZipImages.length; i++) {
                     const key = pendingZipImages[i];
                     const url = `${WORKER_URL}/api/image/${key}`;
-                    const filename = key.split('/').pop();
+                    const filename = decodeURIComponent(key.split('/').pop()); // Decode filename for ZIP
 
                     try {
                         const response = await fetch(url);
