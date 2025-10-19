@@ -217,6 +217,50 @@
             transform: scale(0.96);
         }
 
+        /* Sort Controls */
+        .sort-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: var(--background);
+            border-radius: var(--radius-medium);
+            font-size: 14px;
+        }
+
+        .sort-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        .sort-btn {
+            padding: 8px 14px;
+            background: transparent;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-small);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+        }
+
+        .sort-btn:hover {
+            border-color: var(--primary-color);
+        }
+
+        .sort-btn.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .sort-btn:active {
+            transform: scale(0.95);
+        }
+
         .gallery {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -629,6 +673,16 @@
             .bulk-btn {
                 padding: 8px 16px;
                 font-size: 13px;
+            }
+
+            .sort-controls {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .sort-btn {
+                padding: 6px 10px;
+                font-size: 12px;
             }
         }
 
@@ -1256,6 +1310,15 @@
                 </button>
                 <button class="btn btn-viewer" onclick="openViewerMode()">🎬 Viewer</button>
             </div>
+
+            <!-- Sort Controls -->
+            <div class="sort-controls">
+                <span class="sort-label">📋 Sort:</span>
+                <button class="sort-btn active" id="sortNameAZ" onclick="setSortMode('name-az')">Name A-Z</button>
+                <button class="sort-btn" id="sortNameZA" onclick="setSortMode('name-za')">Name Z-A</button>
+                <button class="sort-btn" id="sortDateNewest" onclick="setSortMode('date-newest')">Newest</button>
+                <button class="sort-btn" id="sortDateOldest" onclick="setSortMode('date-oldest')">Oldest</button>
+            </div>
         </div>
 
         <div class="gallery" id="gallery"></div>
@@ -1300,6 +1363,8 @@
         let viewerTouchStartX = 0;
         let viewerIsSwiping = false;
         let isNavigating = false;
+        let currentSortMode = 'name-az'; // Default sort mode
+        let cachedImages = []; // Cache for sorting
 
         function navigateToFolder(folderName) {
             if (currentPath[currentPath.length - 1] === folderName) {
@@ -1375,41 +1440,114 @@
             }
         }
 
+        // Sorting functions
+        function setSortMode(mode) {
+            currentSortMode = mode;
+            
+            // Update button states
+            document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById({
+                'name-az': 'sortNameAZ',
+                'name-za': 'sortNameZA', 
+                'date-newest': 'sortDateNewest',
+                'date-oldest': 'sortDateOldest'
+            }[mode]).classList.add('active');
+
+            // Re-render gallery with new sort
+            renderGallery(cachedImages);
+            
+            showToast(`Sorted by ${{
+                'name-az': 'Name A-Z',
+                'name-za': 'Name Z-A',
+                'date-newest': 'Newest First', 
+                'date-oldest': 'Oldest First'
+            }[mode]}`, 'success');
+        }
+
+        function sortImages(images, mode) {
+            const sorted = [...images];
+            
+            switch(mode) {
+                case 'name-az':
+                    return sorted.sort((a, b) => {
+                        const nameA = a.key.split('/').pop().toLowerCase();
+                        const nameB = b.key.split('/').pop().toLowerCase();
+                        return nameA.localeCompare(nameB);
+                    });
+                    
+                case 'name-za':
+                    return sorted.sort((a, b) => {
+                        const nameA = a.key.split('/').pop().toLowerCase();
+                        const nameB = b.key.split('/').pop().toLowerCase();
+                        return nameB.localeCompare(nameA);
+                    });
+                    
+                case 'date-newest':
+                    return sorted.sort((a, b) => {
+                        const timeA = a.lastModified || a.uploaded || 0;
+                        const timeB = b.lastModified || b.uploaded || 0;
+                        return new Date(timeB) - new Date(timeA);
+                    });
+                    
+                case 'date-oldest':
+                    return sorted.sort((a, b) => {
+                        const timeA = a.lastModified || a.uploaded || 0;
+                        const timeB = b.lastModified || b.uploaded || 0;
+                        return new Date(timeA) - new Date(timeB);
+                    });
+                    
+                default:
+                    return sorted;
+            }
+        }
+
+        function renderGallery(images) {
+            const gallery = document.getElementById('gallery');
+            const emptyState = document.getElementById('emptyState');
+            gallery.innerHTML = '';
+
+            if (images.length === 0) {
+                gallery.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            gallery.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            // Sort images according to current sort mode
+            const sortedImages = sortImages(images, currentSortMode);
+
+            sortedImages.forEach(img => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.dataset.key = img.key;
+                item.innerHTML = `
+                    <input type="checkbox" class="gallery-item-checkbox" onchange="toggleImageSelection('${img.key.replace(/'/g, "\'")}')">
+                    <img src="${WORKER_URL}/api/image/${img.key}" alt="Photo">
+                    <button class="delete-btn" onclick="deleteFile('${img.key.replace(/'/g, "\'")}', event)">×</button>
+                `;
+
+                // Add click handler to image
+                const imgElement = item.querySelector('img');
+                imgElement.onclick = (e) => handleImageClick(img.key, e);
+
+                gallery.appendChild(item);
+            });
+        }
+
         async function loadGallery(folder) {
             currentFolder = folder;
 
             try {
                 const response = await fetch(`${WORKER_URL}/api/list?path=${encodeURIComponent(folder)}`);
                 const images = await response.json();
-
-                const gallery = document.getElementById('gallery');
-                const emptyState = document.getElementById('emptyState');
-                gallery.innerHTML = '';
-
-                if (images.length === 0) {
-                    gallery.style.display = 'none';
-                    emptyState.style.display = 'block';
-                } else {
-                    gallery.style.display = 'grid';
-                    emptyState.style.display = 'none';
-
-                    images.forEach(img => {
-                        const item = document.createElement('div');
-                        item.className = 'gallery-item';
-                        item.dataset.key = img.key;
-                        item.innerHTML = `
-                            <input type="checkbox" class="gallery-item-checkbox" onchange="toggleImageSelection('${img.key.replace(/'/g, "\'")}')">
-                            <img src="${WORKER_URL}/api/image/${img.key}" alt="Photo">
-                            <button class="delete-btn" onclick="deleteFile('${img.key.replace(/'/g, "\'")}', event)">×</button>
-                        `;
-
-                        // Add click handler to image
-                        const imgElement = item.querySelector('img');
-                        imgElement.onclick = (e) => handleImageClick(img.key, e);
-
-                        gallery.appendChild(item);
-                    });
-                }
+                
+                // Cache images for sorting
+                cachedImages = images;
+                
+                // Render with current sort mode
+                renderGallery(images);
             } catch (error) {
                 showToast('Failed to load images', 'error');
             }
@@ -1417,7 +1555,7 @@
 
         function handleImageClick(key,event){if(isSelectionMode){event.preventDefault();const e=event.target.parentElement.querySelector(".gallery-item-checkbox");e&&(e.checked=!e.checked,toggleImageSelection(key))}else openLightbox(WORKER_URL+"/api/image/"+key,key)}
 
-        document.getElementById('fileInput').addEventListener('change',async function(){const e=this.files;if(0===e.length)return;if(!currentFolder)return void showToast("Please select a folder first","error");const t=document.getElementById("uploadProgressBar"),n=document.getElementById("uploadProgressFill"),o=document.getElementById("uploadProgressText");t.classList.add("active"),o.classList.add("active");try{const a=e.length;for(let i=0;i<e.length;i++){const l=e[i],r=l.type.startsWith("video/"),s=addGalleryItemRealtime(l.name,l.type);if(o.textContent="Uploading "+(i+1)+" / "+a+": "+l.name,n.style.width=i/a*100+"%",r){o.textContent="Generating thumbnail: "+l.name;const e=await generateVideoThumbnail(l);o.textContent="Uploading video "+(i+1)+" / "+a+": "+l.name,await fetch(WORKER_URL+"/api/upload/"+encodeURIComponent(currentFolder)+"/"+encodeURIComponent(l.name),{method:"PUT",body:l,headers:{"Content-Type":l.type}});const t=".thumbnails/"+(currentFolder?currentFolder+"/":"")+l.name+".jpg";await fetch(WORKER_URL+"/api/upload/"+encodeURIComponent(t),{method:"PUT",body:e,headers:{"Content-Type":"image/jpeg"}})}else await fetch(WORKER_URL+"/api/upload/"+encodeURIComponent(currentFolder)+"/"+encodeURIComponent(l.name),{method:"PUT",body:l,headers:{"Content-Type":l.type}});updateGalleryItemComplete(s,l.name)}n.style.width="100%",o.textContent="✓ Upload complete!",setTimeout((()=>{t.classList.remove("active"),o.classList.remove("active"),n.style.width="0%"}),1500),showToast("✓ Uploaded "+e.length+" file(s)","success"),loadStorageStats(),this.value=""}catch(e){t.classList.remove("active"),o.classList.remove("active"),n.style.width="0%",showToast("Upload failed","error")}});
+        document.getElementById('fileInput').addEventListener('change',async function(){const e=this.files;if(0===e.length)return;if(!currentFolder)return void showToast("Please select a folder first","error");const t=document.getElementById("uploadProgressBar"),n=document.getElementById("uploadProgressFill"),o=document.getElementById("uploadProgressText");t.classList.add("active"),o.classList.add("active");try{const a=e.length;for(let i=0;i<e.length;i++){const l=e[i],r=l.type.startsWith("video/"),s=addGalleryItemRealtime(l.name,l.type);if(o.textContent="Uploading "+(i+1)+" / "+a+": "+l.name,n.style.width=i/a*100+"%",r){o.textContent="Generating thumbnail: "+l.name;const e=await generateVideoThumbnail(l);o.textContent="Uploading video "+(i+1)+" / "+a+": "+l.name,await fetch(WORKER_URL+"/api/upload/"+encodeURIComponent(currentFolder)+"/"+encodeURIComponent(l.name),{method:"PUT",body:l,headers:{"Content-Type":l.type}});const t=".thumbnails/"+(currentFolder?currentFolder+"/":"")+l.name+".jpg";await fetch(WORKER_URL+"/api/upload/"+encodeURIComponent(t),{method:"PUT",body:e,headers:{"Content-Type":"image/jpeg"}})}else await fetch(WORKER_URL+"/api/upload/"+encodeURIComponent(currentFolder)+"/"+encodeURIComponent(l.name),{method:"PUT",body:l,headers:{"Content-Type":l.type}});updateGalleryItemComplete(s,l.name)}n.style.width="100%",o.textContent="✓ Upload complete!",setTimeout((()=>{t.classList.remove("active"),o.classList.remove("active"),n.style.width="0%"}),1500),showToast("✓ Uploaded "+e.length+" file(s)","success"),loadStorageStats(),loadGallery(currentFolder),this.value=""}catch(e){t.classList.remove("active"),o.classList.remove("active"),n.style.width="0%",showToast("Upload failed","error")}});
 
         document.getElementById('folderInput').addEventListener('change', async function() {
             const files = this.files;
@@ -1601,7 +1739,7 @@
             if (isVideo) {
                 const thumbnailPath = '.thumbnails/' + key + '.jpg';
                 const thumbSrc = WORKER_URL + '/api/image/' + thumbnailPath;
-                galleryItem.innerHTML = '<img src="' + thumbSrc + '" alt="' + fileName + '" loading="lazy" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:48px;color:white\">▶</div></div>\'"><div class="gallery-item-name">' + fileName + '</div>';
+                galleryItem.innerHTML = '<img src="' + thumbSrc + '" alt="' + fileName + '" loading="lazy" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:48px;color:white\">▶</div></div>\'" ><div class="gallery-item-name">' + fileName + '</div>';
             } else {
                 galleryItem.innerHTML = '<img src="' + imgSrc + '" alt="' + fileName + '" loading="lazy"><div class="gallery-item-name">' + fileName + '</div>';
             }
@@ -1609,42 +1747,41 @@
         }
 
         function handleThumbnailError(img, isVideo){
-  if(img.dataset.fallbackApplied) return;
-  img.dataset.fallbackApplied = '1';
-  img.parentElement.innerHTML = isVideo
-    ? '<div style="width:100%;height:100%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;border-radius:8px">▶</div>'
-    : '<div style="width:100%;height:100%;background:linear-gradient(135deg,#ff6b6b,#ee5a24);display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;border-radius:8px">📷</div>';
-}
+          if(img.dataset.fallbackApplied) return;
+          img.dataset.fallbackApplied = '1';
+          img.parentElement.innerHTML = isVideo
+            ? '<div style="width:100%;height:100%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;border-radius:8px">▶</div>'
+            : '<div style="width:100%;height:100%;background:linear-gradient(135deg,#ff6b6b,#ee5a24);display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;border-radius:8px">📷</div>';
+        }
 
-
-function openLightbox(imgSrc, mediaKey) {
-    const lightbox = document.getElementById('lightbox');
-    const content = document.getElementById('lightbox-content');
-    const gallery = document.getElementById('thumbnailGallery');
-    const items = Array.from(document.querySelectorAll('.gallery-item'));
-    allMediaKeys = items.map(i => i.dataset.key);
-    if (mediaKey) currentMediaIndex = allMediaKeys.indexOf(mediaKey);
-    const vExts = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
-    const isV = vExts.some(e => imgSrc.toLowerCase().endsWith(e));
-    content.innerHTML = isV ? '<video src="' + imgSrc + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>' : '<img src="' + imgSrc + '" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">';
-    gallery.innerHTML = '';
-    allMediaKeys.forEach((k, i) => {
-        const d = document.createElement('div');
-        d.className = 'thumbnail-item' + (i === currentMediaIndex ? ' active' : '');
-        const isTV = vExts.some(e => k.toLowerCase().endsWith(e));
-        
-        // 원래 방식: 비디오만 .thumbnails, 이미지는 원본 그대로
-        const ts = isTV 
-            ? `${WORKER_URL}/api/image/.thumbnails/${currentFolder ? currentFolder + '/' : ''}${k.split('/').pop()}.jpg`
-            : `${WORKER_URL}/api/image/${k}`;
-            
-        d.innerHTML = isTV ? '<img src="' + ts + '" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:32px;color:white\">▶</div></div>\'"><div class="video-icon">▶</div>' : '<img src="' + ts + '">';
-        d.onclick = e => { e.stopPropagation(); jumpToMedia(i); };
-        gallery.appendChild(d);
-    });
-    scrollToActiveThumbnail();
-    lightbox.classList.add('active');
-}
+        function openLightbox(imgSrc, mediaKey) {
+            const lightbox = document.getElementById('lightbox');
+            const content = document.getElementById('lightbox-content');
+            const gallery = document.getElementById('thumbnailGallery');
+            const items = Array.from(document.querySelectorAll('.gallery-item'));
+            allMediaKeys = items.map(i => i.dataset.key);
+            if (mediaKey) currentMediaIndex = allMediaKeys.indexOf(mediaKey);
+            const vExts = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
+            const isV = vExts.some(e => imgSrc.toLowerCase().endsWith(e));
+            content.innerHTML = isV ? '<video src="' + imgSrc + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>' : '<img src="' + imgSrc + '" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">';
+            gallery.innerHTML = '';
+            allMediaKeys.forEach((k, i) => {
+                const d = document.createElement('div');
+                d.className = 'thumbnail-item' + (i === currentMediaIndex ? ' active' : '');
+                const isTV = vExts.some(e => k.toLowerCase().endsWith(e));
+                
+                // 원래 방식: 비디오만 .thumbnails, 이미지는 원본 그대로
+                const ts = isTV 
+                    ? `${WORKER_URL}/api/image/.thumbnails/${currentFolder ? currentFolder + '/' : ''}${k.split('/').pop()}.jpg`
+                    : `${WORKER_URL}/api/image/${k}`;
+                    
+                d.innerHTML = isTV ? '<img src="' + ts + '" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:32px;color:white\">▶</div></div>\'" ><div class="video-icon">▶</div>' : '<img src="' + ts + '">';
+                d.onclick = e => { e.stopPropagation(); jumpToMedia(i); };
+                gallery.appendChild(d);
+            });
+            scrollToActiveThumbnail();
+            lightbox.classList.add('active');
+        }
 
         function jumpToMedia(i) {
             currentMediaIndex = i;
@@ -1664,9 +1801,6 @@ function openLightbox(imgSrc, mediaKey) {
             viewerMediaKeys = items.map(i => i.dataset.key); viewerCurrentIndex = 0;
             const v = document.getElementById('fullscreenViewer');
             v.classList.add('active'); showViewerMedia(0);
-            //v.addEventListener('touchstart', handleViewerTouchStart, { passive: false });
-            //v.addEventListener('touchmove', handleViewerTouchMove, { passive: false });
-            //v.addEventListener('touchend', handleViewerTouchEnd, { passive: false });
         }
 
         function closeViewerMode() {
@@ -1691,8 +1825,8 @@ function openLightbox(imgSrc, mediaKey) {
                         c.innerHTML = '<div class="txt-viewer"><pre>' + escaped + '</pre></div>';
                     });
             } else {
-        const v = ['.mp4', '.webm', '.ogg', '.mov', '.avi'], isV = v.some(e => k.toLowerCase().endsWith(e));
-            c.innerHTML = isV ? '<video src="' + src + '" controls autoplay loop style="max-width:100%;max-height:100%"></video>' : '<img src="' + src + '" style="max-width:100%;max-height:100%">';
+                const v = ['.mp4', '.webm', '.ogg', '.mov', '.avi'], isV = v.some(e => k.toLowerCase().endsWith(e));
+                c.innerHTML = isV ? '<video src="' + src + '" controls autoplay loop style="max-width:100%;max-height:100%"></video>' : '<img src="' + src + '" style="max-width:100%;max-height:100%">';
             }
             ct.textContent = (i + 1) + ' / ' + viewerMediaKeys.length;
         }
@@ -1708,20 +1842,6 @@ function openLightbox(imgSrc, mediaKey) {
             isNavigating = true;
             showViewerMedia(viewerCurrentIndex - 1 < 0 ? viewerMediaKeys.length - 1 : viewerCurrentIndex - 1);
             setTimeout(() => { isNavigating = false; }, 300);
-        }
-        function handleViewerTouchStart(e) { return; }
-        function handleViewerTouchMove(e) { return; }
-        function handleViewerTouchEnd(e) { return;
-		//function handleViewerTouchEnd(e) {
-        //    if (e.target.tagName === 'VIDEO' || e.target.tagName === 'BUTTON') return;
-        //    if (viewerIsSwiping && viewerTouchStartX) {
-        //        const dx = viewerTouchStartX - e.changedTouches[0].clientX;
-         //       if (Math.abs(dx) > 50) { dx > 0 ? nextViewerMedia() : prevViewerMedia(); }
-        //    } else if (!viewerIsSwiping && e.target.tagName !== 'BUTTON') {
-         //       const x = e.changedTouches[0].clientX, w = window.innerWidth;
-         //       x < w / 3 ? prevViewerMedia() : x > w * 2 / 3 ? nextViewerMedia() : nextViewerMedia();
-        //    }
-        //    viewerTouchStartX = 0; viewerIsSwiping = false;
         }
 
         function closeLightbox(){document.getElementById("lightbox").classList.remove("active"),currentMediaIndex=0,allMediaKeys=[]}
@@ -1822,12 +1942,7 @@ function openLightbox(imgSrc, mediaKey) {
                 for (let i = 0; i < pendingZipImages.length; i++) {
                     const key = pendingZipImages[i];
                     const url = `${WORKER_URL}/api/image/${key}`;
-                    const fileName  = k.split('/').pop();
-                    const folderPath = k.includes('/') ? k.substring(0, k.lastIndexOf('/')) : '';
-                    const ts = isTV
-                      ? `${WORKER_URL}/api/image/.thumbnails/${folderPath ? folderPath + '/' : ''}${fileName}.jpg`
-                      : `${WORKER_URL}/api/image/${k}`;
-
+                    const filename = key.split('/').pop();
 
                     try {
                         const response = await fetch(url);
