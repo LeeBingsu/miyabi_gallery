@@ -87,22 +87,81 @@ export async function onRequestGet(context) {
     }
     
     try {
-        // URL 디코딩 추가 (한글 파일명 지원)
-        const decodedPath = params.path.map(part => decodeURIComponent(part));
-        const key = decodedPath.join('/');
+        // 다양한 디코딩 방법 시도
+        let key;
         
-        console.log('Decoded key:', key); // 디버깅용
+        // 원본 path 배열을 문자열로 결합
+        const originalKey = params.path.join('/');
         
-        // R2에서 파일 가져오기
-        const object = await env.GALLERY_BUCKET.get(key);
+        // 방법 1: 기본 디코딩
+        try {
+            key = params.path.map(part => decodeURIComponent(part)).join('/');
+        } catch (e) {
+            // 방법 2: 이미 디코딩되어 있을 수 있음
+            key = originalKey;
+        }
         
+        console.log('Trying to fetch file:');
+        console.log('- Original key:', originalKey);
+        console.log('- Decoded key:', key);
+        console.log('- Environment bucket name:', env.GALLERY_BUCKET ? 'Available' : 'Missing');
+        
+        // R2에서 파일 가져오기 - 먼저 디코딩된 키로 시도
+        let object = await env.GALLERY_BUCKET.get(key);
+        
+        // 실패 시 원본 키로 시도
         if (!object) {
-            console.log('File not found:', key); // 디버깅용
-            return new Response('File not found', { 
+            console.log('Decoded key failed, trying original key');
+            object = await env.GALLERY_BUCKET.get(originalKey);
+            key = originalKey; // 성공한 키로 업데이트
+        }
+        
+        // 여전히 실패 시 URL 인코딩된 버전 시도
+        if (!object) {
+            console.log('Original key failed, trying URL encoded versions');
+            const encodedKey = params.path.map(part => encodeURIComponent(decodeURIComponent(part))).join('/');
+            object = await env.GALLERY_BUCKET.get(encodedKey);
+            if (object) {
+                key = encodedKey;
+            }
+        }
+        
+        // 모든 방법이 실패한 경우 버킷 내용 확인 (디버깅용)
+        if (!object) {
+            console.log('All key variations failed. Listing bucket contents with similar prefix...');
+            const pathParts = key.split('/');
+            const prefix = pathParts.slice(0, -1).join('/') + (pathParts.length > 1 ? '/' : '');
+            
+            try {
+                const listing = await env.GALLERY_BUCKET.list({ prefix: prefix, limit: 10 });
+                console.log('Bucket contents for prefix "' + prefix + '":');
+                listing.objects.forEach(obj => {
+                    console.log('  - ' + obj.key + ' (size: ' + obj.size + ')');
+                });
+            } catch (listError) {
+                console.log('Failed to list bucket contents:', listError.message);
+            }
+            
+            return new Response(JSON.stringify({
+                error: 'File not found',
+                requestedKey: key,
+                originalKey: originalKey,
+                bucketAvailable: !!env.GALLERY_BUCKET,
+                searchedPaths: [
+                    key,
+                    originalKey,
+                    params.path.map(part => encodeURIComponent(decodeURIComponent(part))).join('/')
+                ]
+            }, null, 2), { 
                 status: 404,
-                headers: { 'Content-Type': 'text/plain' }
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
             });
         }
+        
+        console.log('File found successfully with key:', key);
         
         // 올바른 Content-Type 설정
         const contentType = object.httpMetadata?.contentType || getContentTypeFromExtension(key);
@@ -119,9 +178,17 @@ export async function onRequestGet(context) {
         
     } catch (error) {
         console.error('File load error:', error);
-        return new Response(`Error: ${error.message}`, { 
+        return new Response(JSON.stringify({
+            error: 'Server error',
+            message: error.message,
+            stack: error.stack,
+            bucketAvailable: !!env.GALLERY_BUCKET
+        }, null, 2), { 
             status: 500,
-            headers: { 'Content-Type': 'text/plain' }
+            headers: { 
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            }
         });
     }
 }
