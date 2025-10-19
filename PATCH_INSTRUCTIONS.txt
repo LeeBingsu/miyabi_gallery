@@ -1,0 +1,3 @@
+<!DOCTYPE html>
+<!-- Patched version injects thumbnail CSS and openLightbox without changing other features -->
+<!-- INSERTION GUIDE: This file only contains the patch block to paste into your index.html if direct write is not allowed. -->
