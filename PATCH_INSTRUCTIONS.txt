@@ -1,3 +1,13 @@
 <!DOCTYPE html>
-<!-- Patched version injects thumbnail CSS and openLightbox without changing other features -->
-<!-- INSERTION GUIDE: This file only contains the patch block to paste into your index.html if direct write is not allowed. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Miygal</title>
+</head>
+<body>
+  <script>
+    // Placeholder - this file will not be used. We'll patch main index.html instead.
+  </script>
+</body>
+</html>
