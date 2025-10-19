@@ -964,15 +964,6 @@
             max-width: 90vw;
             max-height: 90vh;
         }
-        
-        .txt-chip{
-          width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-		  background: linear-gradient(to top, #c4c5c7 0%, #dcdddf 52%, #ebebeb 100%);
-          color:#fff;font-weight:700;border-radius:12px;
-          padding:10px;font-size:18px;line-height:1.2;text-align:center;
-          word-break:break-word;overflow:hidden
-        }
-        .txt-chip small{opacity:.9;font-weight:600}
 
     </style>
 </head>
@@ -1511,38 +1502,39 @@
         }
 
         function renderGallery(images) {
-            const gallery=document.getElementById('gallery');
-        const emptyState=document.getElementById('emptyState');
-        gallery.innerHTML='';
-        if(!images||!images.length){gallery.style.display='none'; emptyState.style.display='block'; return;}
-        gallery.style.display='grid'; emptyState.style.display='none';
-        const sorted=images.slice();
-        // 간단: 이름순 오름차순만 유지 (나머지는 기존 파일의 정렬 함수 사용 중)
-        sorted.sort((a,b)=>a.key.localeCompare(b.key));
-        sorted.forEach(img=>{
-          const item=document.createElement('div');
-          item.className='gallery-item';
-          item.dataset.key=img.key;
-          const isTxt=img.key.toLowerCase().endsWith('.txt');
-          const baseName=img.key.split('/').pop().replace(/\.txt$/i,'');
-          if(isTxt){
-            item.innerHTML=`
-              <input type="checkbox" class="gallery-item-checkbox" onchange="toggleImageSelection('${img.key.replace(/'/g,"\\'")}')">
-              <div class="txt-chip" onclick="handleImageClick('${img.key.replace(/'/g,"\\'")}', event)">${baseName}</div>
-              <button class="delete-btn" onclick="deleteFile('${img.key.replace(/'/g,"\\'")}', event)">×</button>
-            `;
-          } else {
-            item.innerHTML=`
-              <input type="checkbox" class="gallery-item-checkbox" onchange="toggleImageSelection('${img.key.replace(/'/g,"\\'")}')">
-              <img src="${WORKER_URL}/api/image/${img.key}" alt="Photo">
-              <button class="delete-btn" onclick="deleteFile('${img.key.replace(/'/g,"\\'")}', event)">×</button>
-            `;
-            const imgElement=item.querySelector('img');
-            imgElement.onclick=(e)=>handleImageClick(img.key,e);
-          }
-          gallery.appendChild(item);
-        });
-      }
+            const gallery = document.getElementById('gallery');
+            const emptyState = document.getElementById('emptyState');
+            gallery.innerHTML = '';
+
+            if (images.length === 0) {
+                gallery.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            gallery.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            // Sort images according to current sort mode
+            const sortedImages = sortImages(images, currentSortMode);
+
+            sortedImages.forEach(img => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.dataset.key = img.key;
+                item.innerHTML = `
+                    <input type="checkbox" class="gallery-item-checkbox" onchange="toggleImageSelection('${img.key.replace(/'/g, "\'")}')">
+                    <img src="${WORKER_URL}/api/image/${img.key}" alt="Photo">
+                    <button class="delete-btn" onclick="deleteFile('${img.key.replace(/'/g, "\'")}', event)">×</button>
+                `;
+
+                // Add click handler to image
+                const imgElement = item.querySelector('img');
+                imgElement.onclick = (e) => handleImageClick(img.key, e);
+
+                gallery.appendChild(item);
+            });
+        }
 
         async function loadGallery(folder) {
             currentFolder = folder;
