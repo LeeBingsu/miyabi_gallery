@@ -1,4 +1,4 @@
-// 갤러리 목록 조회
+
 export async function onRequestGet(context) {
     const { request, env } = context;
     
