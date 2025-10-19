@@ -1566,7 +1566,17 @@
                     // Add click handler to image
                     const imgElement = item.querySelector('img');
                     imgElement.onclick = (e) => handleImageClick(img.key, e);
-                }
+					imgElement.ondblclick = (e) => {
+        e.preventDefault();
+        const items = Array.from(document.querySelectorAll('.gallery-item'));
+        viewerMediaKeys = items.map(i => i.dataset.key);
+        viewerCurrentIndex = viewerMediaKeys.indexOf(img.key);
+        const v = document.getElementById('fullscreenViewer');
+        v.classList.add('active');
+        showViewerMedia(viewerCurrentIndex);
+    };
+				}
+                
 
                 gallery.appendChild(item);
             });
