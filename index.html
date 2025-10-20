@@ -1591,9 +1591,7 @@
                         <button class="delete-btn" onclick="deleteFile('${img.key.replace(/'/g, "\\'")}', event)">×</button>
                     `;
 
-                    // Add click handler to image
-                    const imgElement = item.querySelector('img');
-                    imgElement.onclick = (e) => handleImageClick(img.key, e);
+					const imgElement = item.querySelector('img');
 					imgElement.ondblclick = (e) => {
         e.preventDefault();
         const items = Array.from(document.querySelectorAll('.gallery-item'));
@@ -1603,6 +1601,11 @@
         v.classList.add('active');
         showViewerMedia(viewerCurrentIndex);
     };
+
+                    // Add click handler to image
+                    
+                    imgElement.onclick = (e) => handleImageClick(img.key, e);
+					
 				}
                 
 
