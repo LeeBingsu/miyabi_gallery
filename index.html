@@ -1356,6 +1356,9 @@
                     <span>☑️</span> Select
                 </button>
                 <button class="btn btn-viewer" onclick="openViewerMode()">🎬 Viewer</button>
+                <button class="btn btn-secondary" onclick="showFixFolderNames()">
+                    <span>🔧</span> Fix Folder Names
+                </button>
             </div>
 
             <!-- Sort Controls -->
@@ -1606,7 +1609,7 @@
                     
                     imgElement.onclick = (e) => handleImageClick(img.key, e);
 					
-				}
+			}
                 
 
                 gallery.appendChild(item);
@@ -2189,6 +2192,89 @@
                 console.error('Failed to load storage stats:', error);
             }
         }
+		// ===== Fix Folder Names integration =====
+        let fixFolderNamesData = null;
+
+        async function showFixFolderNames() {
+            showToast('Checking folder names...', 'success');
+            try {
+                const response = await fetch(`${WORKER_URL}/api/fix-folder-names?dryRun=1`);
+                const data = await response.json();
+                fixFolderNamesData = data;
+
+                if (!data.count || data.count === 0) {
+                    showToast('✓ All folder names are already correct!', 'success');
+                    return;
+                }
+
+                const modal = document.createElement('div');
+                modal.className = 'password-modal active';
+                modal.innerHTML = `
+                    <div class="password-modal-content">
+                        <h3>🔧 Fix Folder Names</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                            Found <strong>${data.count}</strong> items with encoded folder names that need fixing.
+                        </p>
+                        <div style="max-height: 200px; overflow-y: auto; margin-bottom: 20px; font-size: 12px; background: var(--background); padding: 10px; border-radius: 8px;">
+                            ${data.items.slice(0, 10).map(item => 
+                                `<div style="margin-bottom: 5px;">
+                                    <div style="color: var(--destructive);">From: ${item.from}</div>
+                                    <div style="color: var(--success);">To: ${item.to}</div>
+                                    <hr style="margin: 5px 0; border: none; border-top: 1px solid var(--border-color);">
+                                </div>`
+                            ).join('')}
+                            ${data.count > 10 ? `<div style="text-align: center; color: var(--text-secondary);">... and ${data.count - 10} more items</div>` : ''}
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 20px;">
+                            ⚠️ This will rename files and may temporarily break some links. Continue?
+                        </p>
+                        <div class="password-modal-buttons">
+                            <button class="btn-secondary" onclick="cancelFixFolderNames()">Cancel</button>
+                            <button class="btn-primary" onclick="runFixFolderNames()">Fix Names</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            } catch (error) {
+                showToast('Failed to check folder names', 'error');
+                console.error('Fix folder names error:', error);
+            }
+        }
+
+        function cancelFixFolderNames() {
+            const modal = document.querySelector('.password-modal');
+            if (modal) document.body.removeChild(modal);
+            fixFolderNamesData = null;
+        }
+
+        async function runFixFolderNames() {
+            const modal = document.querySelector('.password-modal');
+            const buttons = modal.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+            modal.querySelector('.password-modal-content h3').textContent = '🔧 Fixing Folder Names...';
+            modal.querySelector('.password-modal-content p').textContent = 'Please wait while we fix the folder names. This may take a moment.';
+
+            try {
+                const response = await fetch(`${WORKER_URL}/api/fix-folder-names`, { method: 'POST' });
+                const result = await response.json();
+                if (modal && document.body.contains(modal)) document.body.removeChild(modal);
+
+                if (result.migrated > 0) {
+                    showToast(`✓ Fixed ${result.migrated} folder names!`, 'success');
+                    loadFolders(currentFolder);
+                    loadGallery(currentFolder);
+                } else {
+                    showToast('No changes were needed', 'success');
+                }
+            } catch (error) {
+                if (modal && document.body.contains(modal)) document.body.removeChild(modal);
+                showToast('Failed to fix folder names', 'error');
+                console.error('Fix folder names error:', error);
+            }
+            fixFolderNamesData = null;
+        }
+		// ===== End Fix Folder Names integration =====
+
 		let currentRotation = 0;
 
 function rotateViewerImage() {
