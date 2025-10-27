@@ -904,322 +904,6 @@
         .viewer-arrow:hover { background: rgba(0, 0, 0, 0.9); transform: translateY(-50%) scale(1.1) !important; }
         .viewer-arrow.left { left: 20px !important; }
         .viewer-arrow.right { right: 20px !important; }
-		#viewerContent {
-    pointer-events: none !important;
-}
-
-#viewerContent img,
-#viewerContent video {
-    pointer-events: auto;
-    cursor: default;
-}
-
-
-    
-        /* 화살표 (배경 없음, 클릭 영역 유지) */
-        .viewer-arrow {
-            position: fixed !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            width: 50px !important;  /* 클릭 영역 */
-            height: 80px !important;  /* 클릭 영역 (세로로 길게) */
-            background: transparent !important;  /* 배경 제거 */
-            border-radius: 0 !important;  /* 원형 제거 */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 32px !important;  /* 화살표 크게 */
-            cursor: pointer;
-            z-index: 10002 !important;
-            pointer-events: auto !important;
-            user-select: none !important;
-            opacity: 0;  /* 기본 숨김 */
-            transition: opacity 0.3s ease, transform 0.2s ease !important;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);  /* 그림자로 가독성 */
-        }
-
-        /* 뷰어에 마우스/터치 시 화살표 표시 */
-        .fullscreen-viewer.active:hover .viewer-arrow,
-        .fullscreen-viewer.active.show-arrows .viewer-arrow {
-            opacity: 1;
-        }
-
-        .viewer-arrow:hover {
-            transform: translateY(-50%) scale(1.2) !important;
-            text-shadow: 0 2px 12px rgba(0, 0, 0, 1);
-        }
-
-        .viewer-arrow:active {
-            transform: translateY(-50%) scale(0.9) !important;
-        }
-
-        .viewer-arrow.left { 
-            left: 10px !important;
-            justify-content: flex-start;
-        }
-
-        .viewer-arrow.right { 
-            right: 10px !important;
-            justify-content: flex-end;
-        }
-
-        @media (max-width: 640px) {
-            .viewer-arrow {
-                width: 45px !important;
-                height: 70px !important;
-                font-size: 28px !important;
-            }
-        }
-
-    
-        /* TXT File Support */
-        .txt-icon {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 32px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .txt-viewer {
-            background: white;
-            color: #333;
-            padding: 30px;
-            max-width: 800px;
-            max-height: calc(100vh - 200px);
-            overflow-y: auto;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-
-        .txt-viewer pre {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            margin: 0;
-        }
-
-        #viewerContent .txt-viewer {
-            max-width: 90vw;
-            max-height: 90vh;
-        }
-
-    </style>
-</head>
-<body>
-    
-    <!-- Password Protection -->
-    <div id="passwordModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 9999;">
-        <div style="background: var(--card-background); padding: 40px; border-radius: 20px; max-width: 400px; width: 90%; text-align: center;">
-            <h2 style="margin-bottom: 20px; color: var(--text-primary);">🔒 Gallery Access</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 30px;">Enter password to continue</p>
-            <input type="password" id="passwordInput" placeholder="Enter dot password" style="width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 12px; font-size: 16px; margin-bottom: 20px; background: var(--background); color: var(--text-primary);" autofocus>
-            <p id="errorMsg" style="color: var(--destructive); margin-top: 15px; display: none;">Incorrect password</p>
-        </div>
-    </div>
-
-    <script>
-        const PASSWORD_HASH = '3fb97d67d0041d9e3f03b9b6d89d860b1e07884f674336ebad64a8fd4288a4865655f0e68cc2acc978ed94d71d87672452d2850ddc90bccc0edaecb3bf135126';
-        const AUTH_DURATION = 2 * 60 * 60 * 1000;
-
-        async function hashPassword(password) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(password);
-            const hash = await crypto.subtle.digest('SHA-512', data);
-            return Array.from(new Uint8Array(hash))
-                .map(b => b.toString(16).padStart(2, '0'))
-                .join('');
-        }
-
-        async function checkPassword() {
-            const input = document.getElementById('passwordInput').value;
-
-            if (input.length >= 1) {
-                const hash = await hashPassword(input);
-
-                if (hash === PASSWORD_HASH) {
-                    const expiryTime = Date.now() + AUTH_DURATION;
-                    localStorage.setItem('galleryAuth', expiryTime.toString());
-                    document.getElementById('passwordModal').style.display = 'none';
-                } else {
-                    document.getElementById('errorMsg').style.display = 'block';
-                    setTimeout(() => {
-                        document.getElementById('errorMsg').style.display = 'none';
-                    }, 2000);
-                }
-            }
-        }
-
-        document.getElementById('passwordInput').addEventListener('input', checkPassword);
-        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') checkPassword();
-        });
-
-        function checkAuth() {
-            const authExpiry = localStorage.getItem('galleryAuth');
-            if (authExpiry) {
-                const expiryTime = parseInt(authExpiry);
-                const currentTime = Date.now();
-
-                if (currentTime < expiryTime) {
-                    document.getElementById('passwordModal').style.display = 'none';
-                } else {
-                    localStorage.removeItem('galleryAuth');
-                }
-            }
-        }
-
-        
-        // 화살표 자동 숨김/표시
-        let arrowTimeout = null;
-
-        function showViewerArrows() {
-            const viewer = document.getElementById('fullscreenViewer');
-            if (viewer && viewer.classList.contains('active')) {
-                viewer.classList.add('show-arrows');
-
-                // 3초 후 자동 숨김
-                if (arrowTimeout) clearTimeout(arrowTimeout);
-                arrowTimeout = setTimeout(() => {
-                    viewer.classList.remove('show-arrows');
-                }, 3000);
-            }
-        }
-
-        // 뷰어 활성화 시 이벤트 등록
-        document.addEventListener('DOMContentLoaded', function() {
-            const viewer = document.getElementById('fullscreenViewer');
-            if (viewer) {
-                viewer.addEventListener('mousemove', showViewerArrows);
-                viewer.addEventListener('touchstart', showViewerArrows);
-                viewer.addEventListener('click', showViewerArrows);
-            }
-        });
-
-        checkAuth();
-    </script>
-
-    <a href="https://pixai.art/generator/image" target="_blank" class="pixai-shortcut" title="Generate AI Art">
-        <img src="pixai-logo.png" alt="PixAI" class="pixai-icon">
-    </a>
-
-    <div class="storage-info" id="storageInfo">
-        <div class="storage-text">
-            <strong id="storageUsed">0 MB</strong> / 10 GB
-        </div>
-        <div class="storage-bar">
-            <div class="storage-bar-fill" id="storageBarFill" style="width: 0%"></div>
-        </div>
-        <span class="storage-text" id="storagePercent">0%</span>
-    </div>
-
-    <div class="bulk-action-bar" id="bulkActionBar">
-        <span id="selectedCount">0 selected</span>
-        <button class="bulk-btn bulk-btn-download" onclick="downloadSelectedAsZip()">📦 Download ZIP</button>
-        <button class="bulk-btn bulk-btn-delete" onclick="deleteSelected()">🗑️ Delete</button>
-        <button class="bulk-btn bulk-btn-cancel" onclick="exitSelectionMode()">Cancel</button>
-    </div>
-
-    <div class="password-modal" id="passwordZipModal">
-        <div class="password-modal-content">
-            <h3>🔒 Protect ZIP File</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 20px;">Enter a password to protect the ZIP file (optional)</p>
-            <input type="password" id="zipPassword" placeholder="Enter password (leave empty for no password)">
-            <div class="password-modal-buttons">
-                <button class="btn-secondary" onclick="cancelZipPassword()">Cancel</button>
-                <button class="btn-primary" onclick="createZipWithPassword()">Create ZIP</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="viewing-area">
-        <style type="text/css">
-		h1{
-            font-family: "BBH Sans Bartle", sans-serif;
-		}
-	    
-        .viewer-arrow,
-        .lightbox-arrow {
-            user-select: none !important;
-            -webkit-user-select: none !important;
-        }
-        .viewer-arrow:active,
-        .lightbox-arrow:active {
-            transform: translateY(-50%) scale(0.95) !important;
-        }
-
-    
-        /* ===== 완벽한 이미지/뷰어 ===== */
-        #lightbox-content {
-            width: 100%;
-            height: calc(100vh - 150px) !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            overflow: hidden !important;
-        }
-
-        #lightbox-content img {
-            max-width: 100% !important;
-            max-height: calc(100vh - 150px) !important;
-            width: auto !important;
-            height: auto !important;
-            object-fit: contain !important;
-            display: block !important;
-        }
-
-        .thumbnail-gallery { height: 70px !important; }
-        .thumbnail-item { min-width: 60px !important; width: 60px !important; height: 60px !important; }
-        .thumbnail-item img { width: 100% !important; height: 100% !important; object-fit: cover !important; }
-
-        .fullscreen-viewer { pointer-events: none !important; }
-        .fullscreen-viewer > * { pointer-events: auto !important; }
-
-        #viewerContent {
-            pointer-events: none !important;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #viewerContent img,
-        #viewerContent video {
-            pointer-events: auto;
-            max-width: 100vw !important;
-            max-height: 100vh !important;
-            object-fit: contain !important;
-        }
-
-        .viewer-arrow {
-            position: fixed !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            width: 60px;
-            height: 60px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 28px;
-            cursor: pointer;
-            z-index: 10002 !important;
-            pointer-events: auto !important;
-        }
-        .viewer-arrow:hover { background: rgba(0, 0, 0, 0.9); transform: translateY(-50%) scale(1.1) !important; }
-        .viewer-arrow.left { left: 20px !important; }
-        .viewer-arrow.right { right: 20px !important; }
 
     
         /* 화살표 (배경 없음, 클릭 영역 유지) */
@@ -1416,6 +1100,7 @@
         let isNavigating = false;
         let currentSortMode = 'name-az'; // Default sort mode
         let cachedImages = []; // Cache for sorting
+        let clickTimer = null; // debounce single vs double-click
 
         function navigateToFolder(folderName) {
             if (currentPath[currentPath.length - 1] === folderName) {
@@ -1595,8 +1280,19 @@
                     `;
 
 					const imgElement = item.querySelector('img');
+
+                    // Debounce single vs double click
+                    imgElement.onclick = (e) => {
+                        if (clickTimer) return; // a dblclick is coming
+                        clickTimer = setTimeout(() => {
+                            clickTimer = null;
+                            handleImageClick(img.key, e);
+                        }, 200);
+                    };
+
 					imgElement.ondblclick = (e) => {
         e.preventDefault();
+        if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
         const items = Array.from(document.querySelectorAll('.gallery-item'));
         viewerMediaKeys = items.map(i => i.dataset.key);
         viewerCurrentIndex = viewerMediaKeys.indexOf(img.key);
@@ -1605,11 +1301,7 @@
         showViewerMedia(viewerCurrentIndex);
     };
 
-                    // Add click handler to image
-                    
-                    imgElement.onclick = (e) => handleImageClick(img.key, e);
-					
-			}
+                }
                 
 
                 gallery.appendChild(item);
@@ -1827,12 +1519,11 @@
             if (isTxt) {
                 const nameWithoutExt = fileName.replace(/\.txt$/i, '');
                 galleryItem.innerHTML = `<div class="txt-chip">${nameWithoutExt}</div>`;
-            } else if (isVideo) {
-                const thumbnailPath = '.thumbnails/' + key + '.jpg';
-                const thumbSrc = WORKER_URL + '/api/image/' + thumbnailPath;
-                galleryItem.innerHTML = '<img src="' + thumbSrc + '" alt="' + fileName + '" loading="lazy" onerror="this.parentElement.innerHTML=\'<div style=\"background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center\"><div style=\"font-size:48px;color:white\">▶</div></div>\'" ><div class="gallery-item-name">' + fileName + '</div>';
             } else {
-                galleryItem.innerHTML = '<img src="' + imgSrc + '" alt="' + fileName + '" loading="lazy"><div class="gallery-item-name">' + fileName + '</div>';
+                const thumbnailPath = isVideo ? '.thumbnails/' + key + '.jpg' : null;
+                const thumbSrc = isVideo ? (WORKER_URL + '/api/image/' + thumbnailPath) : imgSrc;
+                const onerr = isVideo ? " onerror=\"this.parentElement.innerHTML='" + '<div style="background:linear-gradient(135deg,#667eea,#764ba2);width:100%;height:100%;display:flex;align-items:center;justify-content:center"><div style="font-size:48px;color:white">▶</div></div>' + "'\"" : '';
+                galleryItem.innerHTML = '<img src="' + thumbSrc + '" alt="' + fileName + '" loading="lazy"'+ onerr +'><div class="gallery-item-name">' + fileName + '</div>';
             }
             galleryItem.onclick = (e) => handleImageClick(key, e);
         }
@@ -1868,7 +1559,9 @@
                         content.innerHTML = '<div class="txt-viewer"><pre>Failed to load text content</pre></div>';
                     });
             } else {
-                content.innerHTML = isV ? '<video src="' + imgSrc + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>' : '<img src="' + imgSrc + '" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">';
+                content.innerHTML = isV 
+                    ? '<video src="' + imgSrc + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)" onclick="event.stopPropagation()"></video>'
+                    : '<img src="' + imgSrc + '" style="max-width:100%;height:auto;cursor:pointer" onclick="event.stopPropagation(); toggleImageZoom(this)">';
             }
             
             gallery.innerHTML = '';
@@ -1916,7 +1609,9 @@
                         c.innerHTML = '<div class="txt-viewer"><pre>Failed to load text content</pre></div>';
                     });
             } else {
-                c.innerHTML = isV ? '<video src="' + src + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)"></video>' : '<img src="' + src + '" style="max-width:100%;height:auto;cursor:pointer" onclick="toggleImageZoom(this)">';
+                c.innerHTML = isV 
+                    ? '<video src="' + src + '" controls autoplay loop style="max-width:100%;max-height:calc(100vh - 140px)" onclick="event.stopPropagation()"></video>' 
+                    : '<img src="' + src + '" style="max-width:100%;height:auto;cursor:pointer" onclick="event.stopPropagation(); toggleImageZoom(this)">';
             }
             updateActiveThumbnail(); scrollToActiveThumbnail();
         }
